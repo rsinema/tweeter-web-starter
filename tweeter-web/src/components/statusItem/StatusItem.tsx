@@ -1,9 +1,8 @@
-import { useContext } from "react";
-import { UserInfoContext } from "../userInfo/UserInfoProvider";
 import { AuthToken, FakeData, Status, User } from "tweeter-shared";
 import { Link } from "react-router-dom";
 import Post from "../statusItem/Post";
 import useToastListener from "../toaster/ToastListenerHook";
+import useUserInfo from "../userInfo/UserInfoHook";
 
 interface Props {
   value: Status;
@@ -13,7 +12,7 @@ const StatusItem = (props: Props) => {
   const { displayErrorMessage } = useToastListener();
 
   const { displayedUser, setDisplayedUser, currentUser, authToken } =
-    useContext(UserInfoContext);
+    useUserInfo();
 
   const navigateToUser = async (event: React.MouseEvent): Promise<void> => {
     event.preventDefault();
