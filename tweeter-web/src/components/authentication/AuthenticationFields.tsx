@@ -1,6 +1,7 @@
 interface Props {
   setAlias: (s: string) => void;
   setPassword: (s: string) => void;
+  margin: boolean;
 }
 
 const AuthenticationFields = (props: Props) => {
@@ -17,10 +18,10 @@ const AuthenticationFields = (props: Props) => {
         />
         <label htmlFor="aliasInput">Alias</label>
       </div>
-      <div className="form-floating mb-3">
+      <div className={`form-floating ${props.margin ? "mb-3" : ""}`}>
         <input
           type="password"
-          className="form-control bottom"
+          className={`form-control ${props.margin ? "bottom" : ""}`}
           id="passwordInput"
           placeholder="Password"
           onChange={(event) => props.setPassword(event.target.value)}

@@ -1,4 +1,3 @@
-import useToastListener from "../toaster/ToastListenerHook";
 import OAuth from "./OAuth";
 
 interface Props {

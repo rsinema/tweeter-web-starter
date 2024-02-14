@@ -73,6 +73,7 @@ const Login = (props: Props) => {
       <AuthenticationFields
         setAlias={onAliasEvent}
         setPassword={onPasswordEvent}
+        margin={true}
       />
     );
   };
