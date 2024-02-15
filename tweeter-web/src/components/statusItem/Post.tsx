@@ -9,9 +9,12 @@ interface Props {
 }
 
 const Post = (props: Props) => {
-  const { navigateToUser } = useNavigateToUser();
   const { displayErrorMessage } = useToastListener();
   const { setDisplayedUser, currentUser, authToken } = useUserInfo();
+  const { navigateToUser } = useNavigateToUser(
+    setDisplayedUser,
+    displayErrorMessage
+  );
 
   return (
     <>
@@ -20,15 +23,7 @@ const Post = (props: Props) => {
           <Link
             key={index}
             to={segment.text}
-            onClick={(event) =>
-              navigateToUser(
-                event,
-                setDisplayedUser,
-                currentUser,
-                authToken,
-                displayErrorMessage
-              )
-            }
+            onClick={(event) => navigateToUser(event, currentUser, authToken)}
           >
             {segment.text}
           </Link>

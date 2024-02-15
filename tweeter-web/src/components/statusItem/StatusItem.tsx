@@ -10,9 +10,12 @@ interface Props {
 }
 
 const StatusItem = (props: Props) => {
-  const { navigateToUser } = useNavigateToUser();
   const { displayErrorMessage } = useToastListener();
   const { setDisplayedUser, currentUser, authToken } = useUserInfo();
+  const { navigateToUser } = useNavigateToUser(
+    setDisplayedUser,
+    displayErrorMessage
+  );
 
   return (
     <div className="col bg-light mx-0 px-0">
@@ -35,13 +38,7 @@ const StatusItem = (props: Props) => {
               <Link
                 to={props.value.user.alias}
                 onClick={(event) =>
-                  navigateToUser(
-                    event,
-                    setDisplayedUser,
-                    currentUser,
-                    authToken,
-                    displayErrorMessage
-                  )
+                  navigateToUser(event, currentUser, authToken)
                 }
               >
                 {props.value.user.alias}
