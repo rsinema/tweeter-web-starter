@@ -21,6 +21,7 @@ import { StoryPresenter } from "./presenter/StoryPresenter";
 import { FeedPresenter } from "./presenter/FeedPresenter";
 import { LoginPresenter, LoginView } from "./presenter/LoginPresenter";
 import { RegisterPresenter, RegisterView } from "./presenter/RegisterPresenter";
+import { AuthenticationView } from "./presenter/AuthenticationPresenter";
 
 const App = () => {
   const { currentUser, authToken } = useUserInfo();

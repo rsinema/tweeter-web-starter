@@ -1,30 +1,31 @@
 import { User, AuthToken } from "tweeter-shared";
 import { RegisterService } from "../model/service/RegisterService";
 import { Buffer } from "buffer";
+import { Presenter, View } from "./Presenter";
 
-export interface RegisterView {
+export interface RegisterView extends View {
   updateUserInfo: (
     currentUser: User,
     displayedUser: User | null,
     authToken: AuthToken,
     remember: boolean
   ) => void;
-  displayErrorMessage: (
-    message: string,
-    bootstrapClasses?: string | undefined
-  ) => void;
+  displayErrorMessage: (message: string) => void;
   navigate: (url: string) => void;
   setImageUrl: (url: string) => void;
   setImageBytes: (image: Uint8Array) => void;
 }
 
-export class RegisterPresenter {
-  private view: RegisterView;
+export class RegisterPresenter extends Presenter {
   private service: RegisterService;
 
   public constructor(view: RegisterView) {
-    this.view = view;
+    super(view);
     this.service = new RegisterService();
+  }
+
+  protected get view(): RegisterView {
+    return super.view as RegisterView;
   }
 
   public async doRegister(
