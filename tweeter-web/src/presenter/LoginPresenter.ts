@@ -39,7 +39,6 @@ export class LoginPresenter extends AuthenticationPresenter<LoginService> {
         rememberMeRefVal,
         url
       );
-      this.view.updateUserInfo(user, user, authToken, rememberMeRefVal);
     }, "login user");
   }
 }
