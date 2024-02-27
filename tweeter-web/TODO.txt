@@ -1,7 +1,1 @@
-1. continue added Presenter dependency to all presenter classes
-    - UserInfo
-    - UserNav
-    - Logout
-    - PostStatus
-2. add the this.doErrorWhatever function to all of them
-3. create a message view interface
+remove duplication on the tsx files.

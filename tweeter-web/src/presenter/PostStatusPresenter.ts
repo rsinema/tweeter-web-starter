@@ -1,27 +1,21 @@
 import { AuthToken, Status, User } from "tweeter-shared";
 import { StatusService } from "../model/service/StatusService";
+import { MessageView, Presenter } from "./Presenter";
 
-export interface PostStatusView {
-  displayInfoMessage: (
-    message: string,
-    duration: number,
-    bootstrapClasses?: string | undefined
-  ) => void;
-  clearLastInfoMessage: () => void;
+export interface PostStatusView extends MessageView {
   setPost: (value: string) => void;
-  displayErrorMessage: (
-    message: string,
-    bootstrapClasses?: string | undefined
-  ) => void;
 }
 
-export class PostStatusPresenter {
-  private view: PostStatusView;
+export class PostStatusPresenter extends Presenter {
   private service: StatusService;
 
   public constructor(view: PostStatusView) {
-    this.view = view;
+    super(view);
     this.service = new StatusService();
+  }
+
+  protected get view() {
+    return super.view as PostStatusView;
   }
 
   public async submitPost(
@@ -29,7 +23,7 @@ export class PostStatusPresenter {
     currentUser: User,
     authToken: AuthToken
   ) {
-    try {
+    this.doFailureReportingOperation(async () => {
       this.view.displayInfoMessage("Posting status...", 0);
 
       let status = new Status(post, currentUser!, Date.now());
@@ -39,10 +33,6 @@ export class PostStatusPresenter {
       this.view.clearLastInfoMessage();
       this.view.setPost("");
       this.view.displayInfoMessage("Status posted!", 2000);
-    } catch (error) {
-      this.view.displayErrorMessage(
-        `Failed to post the status because of exception: ${error}`
-      );
-    }
+    }, "post the status");
   }
 }

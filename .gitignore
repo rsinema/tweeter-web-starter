@@ -23,3 +23,6 @@ yarn-debug.log*
 yarn-error.log*
 
 /dist
+s3_user_accessKeys.csv
+s3upload.ts
+tweeter-web/TODO.txt
