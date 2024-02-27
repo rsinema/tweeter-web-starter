@@ -20,7 +20,27 @@ export abstract class AuthenticationPresenter<T> extends Presenter {
   }
   protected abstract createService(): T;
 
+  protected get view() {
+    return super.view as AuthenticationView;
+  }
+
   protected get service(): T {
     return this._service;
+  }
+
+  protected updateUserInfoAndNavigate(
+    currentUser: User,
+    displayedUser: User | null,
+    authToken: AuthToken,
+    rememberMeRefVal: boolean,
+    url: string
+  ): void {
+    this.view.updateUserInfo(
+      currentUser,
+      displayedUser,
+      authToken,
+      rememberMeRefVal
+    );
+    this.view.navigate(url);
   }
 }

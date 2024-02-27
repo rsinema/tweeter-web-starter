@@ -39,9 +39,13 @@ export class RegisterPresenter extends AuthenticationPresenter<RegisterService> 
         password,
         imageBytes
       );
-
-      this.view.updateUserInfo(user, user, authToken, rememberMeRefVal);
-      this.view.navigate("/");
+      this.updateUserInfoAndNavigate(
+        user,
+        user,
+        authToken,
+        rememberMeRefVal,
+        "/"
+      );
     }, "register user");
   }
 

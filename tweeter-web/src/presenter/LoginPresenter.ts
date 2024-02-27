@@ -25,12 +25,21 @@ export class LoginPresenter extends AuthenticationPresenter<LoginService> {
   ) {
     this.doFailureReportingOperation(async () => {
       let [user, authToken] = await this.service.login(alias, password);
-      this.view.updateUserInfo(user, user, authToken, rememberMeRefVal);
+      let url: string;
       if (!!originalUrl) {
-        this.view.navigate(originalUrl);
+        url = originalUrl;
       } else {
-        this.view.navigate("/");
+        url = "/";
       }
+
+      this.updateUserInfoAndNavigate(
+        user,
+        user,
+        authToken,
+        rememberMeRefVal,
+        url
+      );
+      this.view.updateUserInfo(user, user, authToken, rememberMeRefVal);
     }, "login user");
   }
 }
