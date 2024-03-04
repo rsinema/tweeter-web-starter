@@ -11,13 +11,18 @@ import {
   PostStatusPresenter,
   PostStatusView,
 } from "../../presenter/PostStatusPresenter";
-import { LogoutPresenter, LogoutView } from "../../presenter/LogoutPresenter";
+import {
+  AppNavbarPresenter,
+  AppNavbarView,
+} from "../../presenter/AppNavbarPresenter";
 
 const MainLayout = () => {
   return (
     <>
       <AppNavbar
-        presenterGenerator={(view: LogoutView) => new LogoutPresenter(view)}
+        presenterGenerator={(view: AppNavbarView) =>
+          new AppNavbarPresenter(view)
+        }
       />
       <div className="container mx-auto px-3 w-100">
         <div className="row gx-4">
