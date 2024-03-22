@@ -1,5 +1,5 @@
 import { AuthToken } from "tweeter-shared";
-import { LoginService } from "../model/service/LoginService";
+import { UserService } from "../model/service/UserService";
 import { MessageView, Presenter } from "./Presenter";
 
 export interface AppNavbarView extends MessageView {
@@ -8,7 +8,7 @@ export interface AppNavbarView extends MessageView {
 }
 
 export class AppNavbarPresenter extends Presenter {
-  private _service: LoginService | null = null;
+  private _service: UserService | null = null;
 
   public constructor(view: AppNavbarView) {
     super(view);
@@ -20,7 +20,7 @@ export class AppNavbarPresenter extends Presenter {
 
   public get service() {
     if (this._service == null) {
-      this._service = new LoginService();
+      this._service = new UserService();
     }
 
     return this._service;

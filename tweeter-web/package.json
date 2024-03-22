@@ -81,5 +81,13 @@
       "^.+\\.tsx?$": "ts-jest",
       "\\.js$": "babel-jest"
     }
-  }
+  },
+  "main": "babel.config.js",
+  "directories": {
+    "test": "test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

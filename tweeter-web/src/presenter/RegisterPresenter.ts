@@ -1,4 +1,4 @@
-import { RegisterService } from "../model/service/RegisterService";
+import { UserService } from "../model/service/UserService";
 import { Buffer } from "buffer";
 import {
   AuthenticationPresenter,
@@ -10,9 +10,9 @@ export interface RegisterView extends AuthenticationView {
   setImageBytes: (image: Uint8Array) => void;
 }
 
-export class RegisterPresenter extends AuthenticationPresenter<RegisterService> {
-  protected createService(): RegisterService {
-    return new RegisterService();
+export class RegisterPresenter extends AuthenticationPresenter<UserService> {
+  protected createService(): UserService {
+    return new UserService();
   }
 
   public constructor(view: RegisterView) {

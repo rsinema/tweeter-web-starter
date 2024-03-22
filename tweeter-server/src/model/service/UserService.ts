@@ -1,6 +1,6 @@
-import { User, AuthToken, FakeData } from "tweeter-shared";
+import { AuthToken, FakeData, User } from "tweeter-shared";
 
-export class LoginService {
+export class UserService {
   public async login(
     alias: string,
     password: string
@@ -13,10 +13,5 @@ export class LoginService {
     }
 
     return [user, FakeData.instance.authToken];
-  }
-
-  public async logout(authToken: AuthToken) {
-    // Pause so we can see the logging out message. Delete when the call to the server is implemented.
-    await new Promise((res) => setTimeout(res, 1000));
   }
 }

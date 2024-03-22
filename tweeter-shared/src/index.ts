@@ -4,6 +4,12 @@ export { Status } from "./model/domain/Status";
 export { User } from "./model/domain/User";
 export { AuthToken } from "./model/domain/AuthToken";
 
-// All classes that should be avaialble to other modules need to exported here. export * does not work when 
+// All classes that should be avaialble to other modules need to exported here. export * does not work when
 // uploading to lambda. Instead we have to list each export.
 export { FakeData } from "./util/FakeData";
+export { TweeterResponse, AuthenticateResponse } from "./model/net/Response";
+export {
+  TweeterRequest,
+  LoginRequest,
+  RegisterRequest,
+} from "./model/net/Request";

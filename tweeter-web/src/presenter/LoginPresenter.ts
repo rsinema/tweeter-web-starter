@@ -1,12 +1,12 @@
-import { LoginService } from "../model/service/LoginService";
+import { UserService } from "../model/service/UserService";
 import {
   AuthenticationPresenter,
   AuthenticationView,
 } from "./AuthenticationPresenter";
 
-export class LoginPresenter extends AuthenticationPresenter<LoginService> {
-  protected createService(): LoginService {
-    return new LoginService();
+export class LoginPresenter extends AuthenticationPresenter<UserService> {
+  protected createService(): UserService {
+    return new UserService();
   }
 
   public constructor(view: AuthenticationView) {
