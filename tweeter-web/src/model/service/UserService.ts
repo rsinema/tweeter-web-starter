@@ -1,4 +1,11 @@
-import { AuthToken, FakeData, LoginRequest, User } from "tweeter-shared";
+import {
+  AuthToken,
+  FollowRequest,
+  LoginRequest,
+  RegisterRequest,
+  TweeterRequest,
+  User,
+} from "tweeter-shared";
 import { ServerFacade } from "../../network/ServerFacade";
 import { Buffer } from "buffer";
 
@@ -8,7 +15,10 @@ export class UserService {
     alias: string
   ): Promise<User | null> {
     // TODO: Replace with the result of calling server
-    return FakeData.instance.findUserByAlias(alias);
+    const server = new ServerFacade();
+    return server.getUser(
+      new GetUserRequest(new TweeterRequest(alias, authToken))
+    );
   }
 
   public async register(
@@ -18,18 +28,27 @@ export class UserService {
     password: string,
     userImageBytes: Uint8Array
   ): Promise<[User, AuthToken]> {
-    // Not neded now, but will be needed when you make the request to the server in milestone 3
+    const server = new ServerFacade();
     let imageStringBase64: string =
       Buffer.from(userImageBytes).toString("base64");
 
-    // TODO: Replace with the result of calling the server
-    let user = FakeData.instance.firstUser;
+    const resp = await server.register(
+      new RegisterRequest(
+        firstName,
+        lastName,
+        alias,
+        password,
+        imageStringBase64
+      )
+    );
+    let user = resp.user;
+    let token = resp.token;
 
     if (user === null) {
       throw new Error("Invalid registration");
     }
 
-    return [user, FakeData.instance.authToken];
+    return [user, token];
   }
 
   public async login(
@@ -37,7 +56,6 @@ export class UserService {
     password: string
   ): Promise<[User, AuthToken]> {
     const server = new ServerFacade();
-    // TODO: Replace with the result of calling the server
     const resp = await server.login(new LoginRequest(alias, password));
     let user = resp.user;
     let token = resp.token;
@@ -50,8 +68,8 @@ export class UserService {
   }
 
   public async logout(authToken: AuthToken) {
-    // Pause so we can see the logging out message. Delete when the call to the server is implemented.
-    await new Promise((res) => setTimeout(res, 1000));
+    const server = new ServerFacade();
+    await server.logout(new TweeterRequest("", authToken));
   }
 
   public async getIsFollowerStatus(
@@ -59,37 +77,23 @@ export class UserService {
     user: User,
     selectedUser: User
   ): Promise<boolean> {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.isFollower();
-  }
-
-  public async getFolloweesCount(
-    authToken: AuthToken,
-    user: User
-  ): Promise<number> {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getFolloweesCount(user);
-  }
-
-  public async getFollowersCount(
-    authToken: AuthToken,
-    user: User
-  ): Promise<number> {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getFollowersCount(user);
+    const server = new ServerFacade();
+    return server.getIsFollowerStatus(
+      new FollowStatusRequest("", authToken, user, selectedUser)
+    );
   }
 
   public async follow(
     authToken: AuthToken,
     userToFollow: User
   ): Promise<[followersCount: number, followeesCount: number]> {
-    // Pause so we can see the following message. Remove when connected to the server
-    await new Promise((f) => setTimeout(f, 2000));
+    const server = new ServerFacade();
+    const resp = await server.follow(
+      new FollowRequest("", authToken, userToFollow)
+    );
 
-    // TODO: Call the server
-
-    let followersCount = await this.getFollowersCount(authToken, userToFollow);
-    let followeesCount = await this.getFolloweesCount(authToken, userToFollow);
+    let followersCount = resp.followersCount;
+    let followeesCount = resp.followeesCount;
 
     return [followersCount, followeesCount];
   }
@@ -98,19 +102,13 @@ export class UserService {
     authToken: AuthToken,
     userToUnfollow: User
   ): Promise<[followersCount: number, followeesCount: number]> {
-    // Pause so we can see the unfollowing message. Remove when connected to the server
-    await new Promise((f) => setTimeout(f, 2000));
-
-    // TODO: Call the server
-
-    let followersCount = await this.getFollowersCount(
-      authToken,
-      userToUnfollow
+    const server = new ServerFacade();
+    const resp = await server.unfollow(
+      new FollowRequest("", authToken, userToUnfollow)
     );
-    let followeesCount = await this.getFolloweesCount(
-      authToken,
-      userToUnfollow
-    );
+
+    let followersCount = resp.followersCount;
+    let followeesCount = resp.followeesCount;
 
     return [followersCount, followeesCount];
   }

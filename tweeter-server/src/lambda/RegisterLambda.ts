@@ -2,15 +2,20 @@ import { UserService } from "../model/service/UserService";
 import {
   AuthToken,
   AuthenticateResponse,
-  LoginRequest,
-  TweeterResponse,
+  RegisterRequest,
   User,
 } from "tweeter-shared";
 
 export const handler = async (
-  event: LoginRequest
+  event: RegisterRequest
 ): Promise<AuthenticateResponse> => {
-  if (event.alias === undefined || event.password === undefined) {
+  if (
+    event.firstName === undefined ||
+    event.lastName === undefined ||
+    event.alias === undefined ||
+    event.password === undefined ||
+    event.userImageBase64String === undefined
+  ) {
     return new AuthenticateResponse(
       false,
       new User("", "", "", ""),
@@ -21,7 +26,13 @@ export const handler = async (
 
   let response = new AuthenticateResponse(
     true,
-    ...(await new UserService().login(event.alias, event.password)),
+    ...(await new UserService().register(
+      event.firstName,
+      event.lastName,
+      event.alias,
+      event.password,
+      event.userImageBase64String
+    )),
     null
   );
   return response;

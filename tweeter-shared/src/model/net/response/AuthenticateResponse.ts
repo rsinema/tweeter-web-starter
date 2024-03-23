@@ -1,28 +1,6 @@
-import { AuthToken } from "../domain/AuthToken";
-import { User } from "../domain/User";
-
-export class TweeterResponse {
-  private _success: boolean;
-  private _message: string | null;
-
-  constructor(success: boolean, message: string | null = null) {
-    this._success = success;
-    this._message = message;
-  }
-
-  get success() {
-    return this._success;
-  }
-
-  get message() {
-    return this._message;
-  }
-}
-
-interface ResponseJson {
-  _success: boolean;
-  _message: string;
-}
+import { AuthToken } from "../../domain/AuthToken";
+import { User } from "../../domain/User";
+import { ResponseJson, TweeterResponse } from "./Response";
 
 export class AuthenticateResponse extends TweeterResponse {
   private _user: User;

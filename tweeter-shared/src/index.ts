@@ -7,9 +7,17 @@ export { AuthToken } from "./model/domain/AuthToken";
 // All classes that should be avaialble to other modules need to exported here. export * does not work when
 // uploading to lambda. Instead we have to list each export.
 export { FakeData } from "./util/FakeData";
-export { TweeterResponse, AuthenticateResponse } from "./model/net/Response";
-export {
-  TweeterRequest,
-  LoginRequest,
-  RegisterRequest,
-} from "./model/net/Request";
+export { TweeterResponse } from "./model/net/response/Response";
+export { TweeterRequest } from "./model/net/request/Request";
+
+export { FollowRequest } from "./model/net/request/FollowRequest";
+export { FollowResponse } from "./model/net/response/FollowResponse";
+
+export { FollowStatusRequest } from "./model/net/request/FollowStatusRequest";
+export { FollowStatusResponse } from "./model/net/response/FollowStatusResponse";
+
+export { LoginRequest } from "./model/net/request/LoginRequest";
+export { RegisterRequest } from "./model/net/request/RegisterRequest";
+export { AuthenticateResponse } from "./model/net/response/AuthenticateResponse";
+
+export { GetUserResponse } from "./model/net/response/GetUserResponse";
