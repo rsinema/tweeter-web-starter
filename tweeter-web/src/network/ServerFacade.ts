@@ -47,6 +47,7 @@ export class ServerFacade {
 
   async register(request: RegisterRequest): Promise<AuthenticateResponse> {
     const endpoint = "/register";
+    console.log(request);
     const response: JSON =
       await this.clientCommunicator.doPost<RegisterRequest>(request, endpoint);
 

@@ -12,12 +12,12 @@ import {
   AppNavbarView,
 } from "../../src/presenter/AppNavbarPresenter";
 import { AuthToken } from "tweeter-shared";
-import { LoginService } from "../../src/model/service/LoginService";
+import { UserService } from "../../src/model/service/UserService";
 
 describe("AppNavbarPresenter", () => {
   let mockAppNavbarView: AppNavbarView;
   let appNavbarPresenter: AppNavbarPresenter;
-  let mockLoginService: LoginService;
+  let mockLoginService: UserService;
 
   const authToken = new AuthToken("token", Date.now());
 
@@ -30,7 +30,7 @@ describe("AppNavbarPresenter", () => {
     );
     appNavbarPresenter = instance(appNavbarPresenterSpy);
 
-    mockLoginService = mock<LoginService>();
+    mockLoginService = mock<UserService>();
     const mockLoginServiceInstance = instance(mockLoginService);
 
     when(appNavbarPresenterSpy.service).thenReturn(mockLoginServiceInstance);

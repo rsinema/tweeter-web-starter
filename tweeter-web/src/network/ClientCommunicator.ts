@@ -1,4 +1,5 @@
 import { TweeterRequest } from "tweeter-shared";
+import "isomorphic-fetch";
 
 export class ClientCommunicator {
   private SERVER_URL: string;
@@ -11,7 +12,7 @@ export class ClientCommunicator {
     endpoint: string
   ): Promise<JSON> {
     const url = this.SERVER_URL + endpoint;
-    console.log(url);
+    // console.log(url);
     const request = {
       method: "post",
       headers: new Headers({
