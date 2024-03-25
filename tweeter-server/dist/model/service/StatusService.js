@@ -9,24 +9,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handler = void 0;
-const UserService_1 = require("../model/service/UserService");
+exports.StatusService = void 0;
 const tweeter_shared_1 = require("tweeter-shared");
-const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    if (event.firstName === null ||
-        event.lastName === null ||
-        event.alias === null ||
-        event.password === null ||
-        event.userImageBase64String === null) {
-        throw new Error("[Bad Request] Bad request");
+class StatusService {
+    loadMoreFeedItems(authToken, displayedUser, pageSize, lastItem) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return tweeter_shared_1.FakeData.instance.getPageOfStatuses(lastItem, pageSize);
+        });
     }
-    let response = null;
-    try {
-        response = new tweeter_shared_1.AuthenticateResponse(true, ...(yield new UserService_1.UserService().register(event.firstName, event.lastName, event.alias, event.password, event.userImageBase64String)), null);
+    loadMoreStoryItems(authToken, displayedUser, pageSize, lastItem) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return tweeter_shared_1.FakeData.instance.getPageOfStatuses(lastItem, pageSize);
+        });
     }
-    catch (error) {
-        throw new Error(`[Database Error] ${error}.message`);
+    postStatus(authToken, newStatus) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Pause so we can see the logging out message
+            yield new Promise((f) => setTimeout(f, 2000));
+        });
     }
-    return response;
-});
-exports.handler = handler;
+}
+exports.StatusService = StatusService;

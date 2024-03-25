@@ -17,6 +17,10 @@ const UnfollowLambda_1 = require("./lambda/UnfollowLambda");
 const LogoutLambda_1 = require("./lambda/LogoutLambda");
 const GetUserLambda_1 = require("./lambda/GetUserLambda");
 const FollowStatusLambda_1 = require("./lambda/FollowStatusLambda");
+const LoadMoreStoryItemsLambda_1 = require("./lambda/LoadMoreStoryItemsLambda");
+const PostStatusLambda_1 = require("./lambda/PostStatusLambda");
+const GetFollowCountLambda_1 = require("./lambda/GetFollowCountLambda");
+const LoadMoreUsersLambda_1 = require("./lambda/LoadMoreUsersLambda");
 function login() {
     return __awaiter(this, void 0, void 0, function* () {
         let req = new tweeter_shared_1.LoginRequest("a", "a");
@@ -103,15 +107,82 @@ function getfollowstatus() {
         console.log("\n");
     });
 }
+function poststatus() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const token = new tweeter_shared_1.AuthToken("12345", 10);
+        const user = new tweeter_shared_1.User("first", "last", "a", "url");
+        const post = new tweeter_shared_1.Status("a", user, 10);
+        const req = new tweeter_shared_1.PostStatusRequest("", token, post);
+        console.log(JSON.stringify(req));
+        const response = JSON.stringify(yield (0, PostStatusLambda_1.handler)(req));
+        console.log(response);
+        const responseJson = JSON.parse(response);
+        console.log(tweeter_shared_1.TweeterResponse.fromJson(responseJson));
+        console.log("\n");
+    });
+}
+function loadmoreitems() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const user = new tweeter_shared_1.User("Allen", "Anderson", "@allen", "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+        const status = new tweeter_shared_1.Status("Post 0 0 \nMy friend @amy likes this website: http://byu.edu. Do you? \nOr do you prefer this one: http://cs.byu.edu?", user, 0);
+        const token = new tweeter_shared_1.AuthToken("12345", 10);
+        const req = new tweeter_shared_1.LoadMoreItemsRequest("@bob", token, user, status, 1);
+        // console.log(Status.fromJson(JSON.stringify(status as unknown as JSON)));
+        // let user_2 = JSON.parse(JSON.stringify(user));
+        // console.log(user.equals(user_2));
+        // const list = [status, status, status];
+        // const itemsList = listJson as unknown as Array<Status>;
+        // console.log(itemsList);
+        // console.log(JSON.stringify(req));
+        let response = JSON.stringify(yield (0, LoadMoreStoryItemsLambda_1.handler)(req));
+        // const itemsList = jsonObject._itemsList as unknown as Array<Status>;
+        // console.log(response);
+        let responseJson = JSON.parse(response);
+        console.log(tweeter_shared_1.LoadMoreItemsResponse.fromJson(responseJson));
+        console.log("\n");
+    });
+}
+function getfollowerscount() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const token = new tweeter_shared_1.AuthToken("12345", 10);
+        const user = new tweeter_shared_1.User("Allen", "Anderson", "@allen", "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+        const req = new tweeter_shared_1.GetFollowCountRequest("", token, user, "followees");
+        console.log(JSON.stringify(req));
+        let response = JSON.stringify(yield (0, GetFollowCountLambda_1.handler)(req));
+        console.log(response);
+        let responseJson = JSON.parse(response);
+        console.log(tweeter_shared_1.GetFollowCountResponse.fromJson(responseJson));
+        console.log("\n");
+    });
+}
+function loadmoreusers() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const token = new tweeter_shared_1.AuthToken("12345", 10);
+        const user = new tweeter_shared_1.User("Allen", "Anderson", "@allen", "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+        const user_2 = new tweeter_shared_1.User("Amy", "Ames", "@amy", "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+        const req = new tweeter_shared_1.LoadMoreUsersRequest("", token, user, user_2, 5, "followers");
+        console.log(JSON.stringify(req));
+        let response = JSON.stringify(yield (0, LoadMoreUsersLambda_1.handler)(req));
+        // console.log(response);
+        let responseJson = JSON.parse(response);
+        // console.log(responseJson);
+        console.log(tweeter_shared_1.LoadMoreUsersResponse.fromJson(responseJson));
+        console.log("\n");
+    });
+}
 function test() {
     return __awaiter(this, void 0, void 0, function* () {
-        yield login();
-        yield register();
-        yield logout();
-        yield follow();
-        yield unfollow();
-        yield getuser();
-        yield getfollowstatus();
+        // await login();
+        // await register();
+        // await logout();
+        // await follow();
+        // await unfollow();
+        // await getuser();
+        // await getfollowstatus();
+        // await poststatus();
+        // await loadmoreitems();
+        // await getfollowerscount();
+        yield loadmoreusers();
     });
 }
 test();

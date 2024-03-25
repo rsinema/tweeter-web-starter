@@ -5,21 +5,29 @@ export const handler = async (
   event: FollowStatusRequest
 ): Promise<FollowStatusResponse> => {
   if (
+    event.authtoken === null ||
     event.authtoken === undefined ||
-    event.user === undefined ||
-    event.selectedUser == undefined
+    event.user === null ||
+    event.selectedUser == null
   ) {
-    return new FollowStatusResponse(false, false, "Bad Request");
+    throw new Error("[Bad Request] Bad request");
   }
 
-  let response = new FollowStatusResponse(
-    true,
-    await new UserService().getIsFollowerStatus(
-      event.authtoken,
-      event.user,
-      event.selectedUser
-    ),
-    null
-  );
+  let response = null;
+
+  try {
+    response = new FollowStatusResponse(
+      true,
+      await new UserService().getIsFollowerStatus(
+        event.authtoken,
+        event.user,
+        event.selectedUser
+      ),
+      null
+    );
+  } catch (error) {
+    throw new Error(`[Database Error] ${error as Error}.message`);
+  }
+
   return response;
 };

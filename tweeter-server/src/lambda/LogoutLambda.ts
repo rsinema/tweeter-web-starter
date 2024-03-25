@@ -4,11 +4,15 @@ import { TweeterResponse, TweeterRequest } from "tweeter-shared";
 export const handler = async (
   event: TweeterRequest
 ): Promise<TweeterResponse> => {
-  if (event.authtoken === undefined) {
-    return new TweeterResponse(false, "Bad Request");
+  if (event.authtoken === null) {
+    throw new Error("[Bad Request] Bad request");
   }
-
-  await new UserService().logout(event.authtoken!);
-  let response = new TweeterResponse(true, null);
+  let response = null;
+  try {
+    await new UserService().logout(event.authtoken!);
+    response = new TweeterResponse(true, null);
+  } catch (error) {
+    throw new Error(`[Database Error] ${error as Error}.message`);
+  }
   return response;
 };

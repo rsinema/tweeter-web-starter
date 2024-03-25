@@ -13,16 +13,19 @@ exports.handler = void 0;
 const UserService_1 = require("../model/service/UserService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    if (event.firstName === null ||
-        event.lastName === null ||
-        event.alias === null ||
-        event.password === null ||
-        event.userImageBase64String === null) {
+    if (event.alias === null ||
+        event.authtoken === null ||
+        event.authtoken === undefined) {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
     try {
-        response = new tweeter_shared_1.AuthenticateResponse(true, ...(yield new UserService_1.UserService().register(event.firstName, event.lastName, event.alias, event.password, event.userImageBase64String)), null);
+        if (event.type === "followers") {
+            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService().getFollowersCount(event.authtoken, event.user), null);
+        }
+        else {
+            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService().getFolloweesCount(event.authtoken, event.user), null);
+        }
     }
     catch (error) {
         throw new Error(`[Database Error] ${error}.message`);

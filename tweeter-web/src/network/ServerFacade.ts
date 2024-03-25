@@ -2,7 +2,17 @@ import {
   AuthenticateResponse,
   FollowRequest,
   FollowResponse,
+  FollowStatusRequest,
+  FollowStatusResponse,
+  GetFollowCountRequest,
+  GetFollowCountResponse,
+  GetUserResponse,
+  LoadMoreItemsRequest,
+  LoadMoreItemsResponse,
+  LoadMoreUsersRequest,
+  LoadMoreUsersResponse,
   LoginRequest,
+  PostStatusRequest,
   RegisterRequest,
   TweeterRequest,
   TweeterResponse,
@@ -54,7 +64,7 @@ export class ServerFacade {
   }
 
   async unfollow(request: FollowRequest): Promise<FollowResponse> {
-    const endpoint = "/follow";
+    const endpoint = "/unfollow";
     const response: JSON = await this.clientCommunicator.doPost<FollowRequest>(
       request,
       endpoint
@@ -66,7 +76,7 @@ export class ServerFacade {
   async getIsFollowerStatus(
     request: FollowStatusRequest
   ): Promise<FollowStatusResponse> {
-    const endpoint = "/followstatus";
+    const endpoint = "/getfollowstatus";
     const response: JSON =
       await this.clientCommunicator.doPost<FollowStatusRequest>(
         request,
@@ -76,5 +86,74 @@ export class ServerFacade {
     return FollowStatusResponse.fromJson(response);
   }
 
-  async;
+  async getUser(request: TweeterRequest): Promise<GetUserResponse> {
+    const endpoint = "/getuser";
+    const response: JSON = await this.clientCommunicator.doPost<TweeterRequest>(
+      request,
+      endpoint
+    );
+
+    return GetUserResponse.fromJson(response);
+  }
+
+  async getFollowCount(
+    request: GetFollowCountRequest
+  ): Promise<GetFollowCountResponse> {
+    const endpoint = "/getfollowcount";
+    const response: JSON =
+      await this.clientCommunicator.doPost<GetFollowCountRequest>(
+        request,
+        endpoint
+      );
+
+    return GetFollowCountResponse.fromJson(response);
+  }
+
+  async postStatus(request: PostStatusRequest): Promise<TweeterResponse> {
+    const endpoint = "/poststatus";
+    const response: JSON =
+      await this.clientCommunicator.doPost<PostStatusRequest>(
+        request,
+        endpoint
+      );
+
+    return TweeterResponse.fromJson(response);
+  }
+
+  async loadMoreStoryItems(
+    request: LoadMoreItemsRequest
+  ): Promise<LoadMoreItemsResponse> {
+    const endpoint = "/loadstory";
+    const repsonse: JSON =
+      await this.clientCommunicator.doPost<LoadMoreItemsRequest>(
+        request,
+        endpoint
+      );
+
+    return LoadMoreItemsResponse.fromJson(repsonse);
+  }
+
+  async loadMoreFeedItems(
+    request: LoadMoreItemsRequest
+  ): Promise<LoadMoreItemsResponse> {
+    const endpoint = "/loadfeed";
+    const repsonse: JSON =
+      await this.clientCommunicator.doPost<LoadMoreItemsRequest>(
+        request,
+        endpoint
+      );
+
+    return LoadMoreItemsResponse.fromJson(repsonse);
+  }
+
+  async loadMoreUsers(request: LoadMoreUsersRequest) {
+    const endpoint = "/loadusers";
+    const response: JSON =
+      await this.clientCommunicator.doPost<LoadMoreUsersRequest>(
+        request,
+        endpoint
+      );
+
+    return LoadMoreUsersResponse.fromJson(response);
+  }
 }

@@ -10,23 +10,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-const UserService_1 = require("../model/service/UserService");
+const StatusService_1 = require("../model/service/StatusService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    if (event.firstName === null ||
-        event.lastName === null ||
-        event.alias === null ||
-        event.password === null ||
-        event.userImageBase64String === null) {
-        throw new Error("[Bad Request] Bad request");
+    if (event.authtoken === undefined || event.alias === undefined) {
+        return new tweeter_shared_1.LoadMoreItemsResponse(false, [], false, "Bad Request");
     }
-    let response = null;
-    try {
-        response = new tweeter_shared_1.AuthenticateResponse(true, ...(yield new UserService_1.UserService().register(event.firstName, event.lastName, event.alias, event.password, event.userImageBase64String)), null);
+    if (event.type === "story") {
+        let response = new tweeter_shared_1.LoadMoreItemsResponse(true, ...(yield new StatusService_1.StatusService().loadMoreStoryItems(event.authtoken, event.displayedUser, event.pageSize, event.lastItem)), null);
+        return response;
     }
-    catch (error) {
-        throw new Error(`[Database Error] ${error}.message`);
+    else {
+        let response = new tweeter_shared_1.LoadMoreItemsResponse(true, ...(yield new StatusService_1.StatusService().loadMoreFeedItems(event.authtoken, event.displayedUser, event.pageSize, event.lastItem)), null);
+        return response;
     }
-    return response;
 });
 exports.handler = handler;

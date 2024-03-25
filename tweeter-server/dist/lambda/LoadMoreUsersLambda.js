@@ -10,19 +10,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-const UserService_1 = require("../model/service/UserService");
+const FollowService_1 = require("../model/service/FollowService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    if (event.firstName === null ||
-        event.lastName === null ||
+    if (event.authtoken === undefined ||
         event.alias === null ||
-        event.password === null ||
-        event.userImageBase64String === null) {
+        event.authtoken === null ||
+        event.pageSize === null) {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
     try {
-        response = new tweeter_shared_1.AuthenticateResponse(true, ...(yield new UserService_1.UserService().register(event.firstName, event.lastName, event.alias, event.password, event.userImageBase64String)), null);
+        if (event.type === "followers") {
+            response = new tweeter_shared_1.LoadMoreUsersResponse(true, ...(yield new FollowService_1.FollowService().loadMoreFollowers(event.authtoken, event.displayedUser, event.pageSize, event.lastItem)), null);
+            return response;
+        }
+        else {
+            response = new tweeter_shared_1.LoadMoreUsersResponse(true, ...(yield new FollowService_1.FollowService().loadMoreFollowees(event.authtoken, event.displayedUser, event.pageSize, event.lastItem)), null);
+        }
     }
     catch (error) {
         throw new Error(`[Database Error] ${error}.message`);

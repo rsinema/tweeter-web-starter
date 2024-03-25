@@ -54,7 +54,6 @@ export class UserService {
     authToken: AuthToken,
     user: User
   ): Promise<number> {
-    // TODO: Replace with the result of calling server
     return FakeData.instance.getFollowersCount(user);
   }
 
@@ -62,7 +61,6 @@ export class UserService {
     authToken: AuthToken,
     user: User
   ): Promise<number> {
-    // TODO: Replace with the result of calling server
     return FakeData.instance.getFolloweesCount(user);
   }
 
@@ -70,10 +68,10 @@ export class UserService {
     authToken: AuthToken,
     userToFollow: User
   ): Promise<[followersCount: number, followeesCount: number]> {
+    await new Promise((res) => setTimeout(res, 1000));
+
     let followersCount = await this.getFollowersCount(authToken, userToFollow);
     let followeesCount = await this.getFolloweesCount(authToken, userToFollow);
-
-    followersCount++;
 
     return [followersCount, followeesCount];
   }
@@ -82,6 +80,8 @@ export class UserService {
     authToken: AuthToken,
     userToUnfollow: User
   ): Promise<[followersCount: number, followeesCount: number]> {
+    await new Promise((res) => setTimeout(res, 1000));
+
     let followersCount = await this.getFollowersCount(
       authToken,
       userToUnfollow
@@ -90,8 +90,6 @@ export class UserService {
       authToken,
       userToUnfollow
     );
-
-    followersCount--;
 
     return [followersCount, followeesCount];
   }

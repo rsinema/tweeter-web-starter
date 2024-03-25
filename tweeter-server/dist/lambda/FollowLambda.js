@@ -13,10 +13,18 @@ exports.handler = void 0;
 const UserService_1 = require("../model/service/UserService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    if (event.authtoken === undefined || event.userToFollow === undefined) {
-        return new tweeter_shared_1.FollowResponse(false, 0, 0, "Bad Request");
+    if (event.authtoken === null ||
+        event.authtoken === undefined ||
+        event.userToFollow === null) {
+        throw new Error("[Bad Request] Bad request");
     }
-    let response = new tweeter_shared_1.FollowResponse(true, ...(yield new UserService_1.UserService().follow(event.authtoken, event.userToFollow)), null);
+    let response = null;
+    try {
+        response = new tweeter_shared_1.FollowResponse(true, ...(yield new UserService_1.UserService().follow(event.authtoken, event.userToFollow)), null);
+    }
+    catch (error) {
+        throw new Error(`[Database Error] ${error}.message`);
+    }
     return response;
 });
 exports.handler = handler;

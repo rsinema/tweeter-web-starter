@@ -9,24 +9,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handler = void 0;
-const UserService_1 = require("../model/service/UserService");
+exports.FollowService = void 0;
 const tweeter_shared_1 = require("tweeter-shared");
-const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    if (event.firstName === null ||
-        event.lastName === null ||
-        event.alias === null ||
-        event.password === null ||
-        event.userImageBase64String === null) {
-        throw new Error("[Bad Request] Bad request");
+class FollowService {
+    loadMoreFollowers(authToken, user, pageSize, lastItem) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // TODO: Replace with the result of calling server
+            return tweeter_shared_1.FakeData.instance.getPageOfUsers(lastItem, pageSize, user);
+        });
     }
-    let response = null;
-    try {
-        response = new tweeter_shared_1.AuthenticateResponse(true, ...(yield new UserService_1.UserService().register(event.firstName, event.lastName, event.alias, event.password, event.userImageBase64String)), null);
+    loadMoreFollowees(authToken, user, pageSize, lastItem) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // TODO: Replace with the result of calling server
+            return tweeter_shared_1.FakeData.instance.getPageOfUsers(lastItem, pageSize, user);
+        });
     }
-    catch (error) {
-        throw new Error(`[Database Error] ${error}.message`);
-    }
-    return response;
-});
-exports.handler = handler;
+}
+exports.FollowService = FollowService;

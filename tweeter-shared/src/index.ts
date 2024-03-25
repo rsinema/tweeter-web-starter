@@ -21,3 +21,14 @@ export { RegisterRequest } from "./model/net/request/RegisterRequest";
 export { AuthenticateResponse } from "./model/net/response/AuthenticateResponse";
 
 export { GetUserResponse } from "./model/net/response/GetUserResponse";
+
+export { PostStatusRequest } from "./model/net/request/PostStatusRequest";
+
+export { LoadMoreItemsRequest } from "./model/net/request/LoadMoreItemsRequest";
+export { LoadMoreItemsResponse } from "./model/net/response/LoadMoreItemsResponse";
+
+export { GetFollowCountResponse } from "./model/net/response/GetFollowCountResponse";
+export { GetFollowCountRequest } from "./model/net/request/GetFollowCountRequest";
+
+export { LoadMoreUsersResponse } from "./model/net/response/LoadMoreUsersResponse";
+export { LoadMoreUsersRequest } from "./model/net/request/LoadMoreUsersRequest";

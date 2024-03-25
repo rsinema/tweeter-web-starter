@@ -1,6 +1,9 @@
 import {
   AuthToken,
+  FakeData,
   FollowRequest,
+  FollowStatusRequest,
+  GetFollowCountRequest,
   LoginRequest,
   RegisterRequest,
   TweeterRequest,
@@ -14,11 +17,9 @@ export class UserService {
     authToken: AuthToken,
     alias: string
   ): Promise<User | null> {
-    // TODO: Replace with the result of calling server
     const server = new ServerFacade();
-    return server.getUser(
-      new GetUserRequest(new TweeterRequest(alias, authToken))
-    );
+    const response = await server.getUser(new TweeterRequest(alias, authToken));
+    return response.user;
   }
 
   public async register(
@@ -41,8 +42,8 @@ export class UserService {
         imageStringBase64
       )
     );
-    let user = resp.user;
-    let token = resp.token;
+    const user = resp.user;
+    const token = resp.token;
 
     if (user === null) {
       throw new Error("Invalid registration");
@@ -78,9 +79,32 @@ export class UserService {
     selectedUser: User
   ): Promise<boolean> {
     const server = new ServerFacade();
-    return server.getIsFollowerStatus(
+    const response = await server.getIsFollowerStatus(
       new FollowStatusRequest("", authToken, user, selectedUser)
     );
+    return response.followStatus;
+  }
+
+  public async getFollowersCount(
+    authToken: AuthToken,
+    user: User
+  ): Promise<number> {
+    const server = new ServerFacade();
+    const response = await server.getFollowCount(
+      new GetFollowCountRequest("", authToken, user, "followers")
+    );
+    return response.count;
+  }
+
+  public async getFolloweesCount(
+    authToken: AuthToken,
+    user: User
+  ): Promise<number> {
+    const server = new ServerFacade();
+    const response = await server.getFollowCount(
+      new GetFollowCountRequest("", authToken, user, "followees")
+    );
+    return response.count;
   }
 
   public async follow(
@@ -92,8 +116,8 @@ export class UserService {
       new FollowRequest("", authToken, userToFollow)
     );
 
-    let followersCount = resp.followersCount;
-    let followeesCount = resp.followeesCount;
+    const followersCount = resp.followersCount;
+    const followeesCount = resp.followeesCount;
 
     return [followersCount, followeesCount];
   }
@@ -107,8 +131,8 @@ export class UserService {
       new FollowRequest("", authToken, userToUnfollow)
     );
 
-    let followersCount = resp.followersCount;
-    let followeesCount = resp.followeesCount;
+    const followersCount = resp.followersCount;
+    const followeesCount = resp.followeesCount;
 
     return [followersCount, followeesCount];
   }
