@@ -1,3 +1,4 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
 import {
   AuthToken,
@@ -18,7 +19,10 @@ export const handler = async (
   try {
     response = new AuthenticateResponse(
       true,
-      ...(await new UserService().login(event.alias, event.password)),
+      ...(await new UserService(new DynamoDAOFactory()).login(
+        event.alias,
+        event.password
+      )),
       null
     );
   } catch (error) {

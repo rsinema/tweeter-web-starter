@@ -1,3 +1,4 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
 import {
   AuthToken,
@@ -22,13 +23,19 @@ export const handler = async (
     if (event.type === "followers") {
       response = new GetFollowCountResponse(
         true,
-        await new UserService().getFollowersCount(event.authtoken, event.user),
+        await new UserService(new DynamoDAOFactory()).getFollowersCount(
+          event.authtoken,
+          event.user
+        ),
         null
       );
     } else {
       response = new GetFollowCountResponse(
         true,
-        await new UserService().getFolloweesCount(event.authtoken, event.user),
+        await new UserService(new DynamoDAOFactory()).getFolloweesCount(
+          event.authtoken,
+          event.user
+        ),
         null
       );
     }

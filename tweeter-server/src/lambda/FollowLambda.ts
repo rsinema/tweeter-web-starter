@@ -1,3 +1,4 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
 import { FollowResponse, FollowRequest } from "tweeter-shared";
 
@@ -16,7 +17,10 @@ export const handler = async (
   try {
     response = new FollowResponse(
       true,
-      ...(await new UserService().follow(event.authtoken, event.userToFollow)),
+      ...(await new UserService(new DynamoDAOFactory()).follow(
+        event.authtoken,
+        event.userToFollow
+      )),
       null
     );
   } catch (error) {

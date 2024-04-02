@@ -1,3 +1,4 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
 import { GetUserResponse, TweeterRequest, User } from "tweeter-shared";
 
@@ -16,7 +17,10 @@ export const handler = async (
   try {
     response = new GetUserResponse(
       true,
-      await new UserService().getUser(event.authtoken, event.alias),
+      await new UserService(new DynamoDAOFactory()).getUser(
+        event.authtoken,
+        event.alias
+      ),
       null
     );
   } catch (error) {

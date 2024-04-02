@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
+const DynamoDAOFactory_1 = require("../dao/dynamo/DynamoDAOFactory");
 const UserService_1 = require("../model/service/UserService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
@@ -21,10 +22,10 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     let response = null;
     try {
         if (event.type === "followers") {
-            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService().getFollowersCount(event.authtoken, event.user), null);
+            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).getFollowersCount(event.authtoken, event.user), null);
         }
         else {
-            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService().getFolloweesCount(event.authtoken, event.user), null);
+            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).getFolloweesCount(event.authtoken, event.user), null);
         }
     }
     catch (error) {

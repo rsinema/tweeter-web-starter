@@ -1,3 +1,4 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
 import { AuthenticateResponse, RegisterRequest } from "tweeter-shared";
 
@@ -19,7 +20,7 @@ export const handler = async (
   try {
     response = new AuthenticateResponse(
       true,
-      ...(await new UserService().register(
+      ...(await new UserService(new DynamoDAOFactory()).register(
         event.firstName,
         event.lastName,
         event.alias,

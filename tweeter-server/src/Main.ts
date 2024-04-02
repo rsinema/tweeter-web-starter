@@ -19,6 +19,7 @@ import {
   GetFollowCountResponse,
   LoadMoreUsersRequest,
   LoadMoreUsersResponse,
+  Follow,
 } from "tweeter-shared";
 import { handler as loginHandler } from "./lambda/LoginLambda";
 import { handler as registerHandler } from "./lambda/RegisterLambda";
@@ -31,9 +32,15 @@ import { handler as loadMoreItemsHandler } from "./lambda/LoadMoreStoryItemsLamb
 import { handler as postStatusHandler } from "./lambda/PostStatusLambda";
 import { handler as getFollowHandler } from "./lambda/GetFollowCountLambda";
 import { handler as loadMoreUsersHandler } from "./lambda/LoadMoreUsersLambda";
+import { DynamoUserDAO } from "./dao/dynamo/DynamoUserDAO";
+import { DynamoAuthenticationDAO } from "./dao/dynamo/DynamoAuthenticationDAO";
+import { DynamoAuthTokenDAO } from "./dao/dynamo/DynamoAuthTokenDAO";
+import { DynamoFollowDAO } from "./dao/dynamo/DynamoFollowDAO";
+import { UserService } from "./model/service/UserService";
+import { DynamoDAOFactory } from "./dao/dynamo/DynamoDAOFactory";
 
 async function login() {
-  let req = new LoginRequest("a", "a");
+  let req = new LoginRequest("r", "password");
   console.log(JSON.stringify(req));
   let response = JSON.stringify(await loginHandler(req));
   console.log(response);
@@ -43,7 +50,7 @@ async function login() {
 }
 
 async function register() {
-  let req = new RegisterRequest("a", "a", "a", "a", "image");
+  let req = new RegisterRequest("name", "a", "a", "a", "image");
   console.log(JSON.stringify(req));
   let response = JSON.stringify(await registerHandler(req));
   console.log(response);
@@ -88,14 +95,17 @@ async function unfollow() {
 }
 
 async function getuser() {
-  const token = new AuthToken("12345", 10);
-  let req = new TweeterRequest("@bob", token);
+  const token = new AuthToken("token", Date.now());
+  const dao = new DynamoAuthTokenDAO();
+  await dao.putAuthToken(token, "@r");
+  let req = new TweeterRequest("@r", token);
   console.log(JSON.stringify(req));
   let response = JSON.stringify(await getUserHandler(req));
   console.log(response);
   let responseJson = JSON.parse(response);
   console.log(GetUserResponse.fromJson(responseJson));
   console.log("\n");
+  await dao.deleteAuthToken(token);
 }
 
 async function getfollowstatus() {
@@ -196,6 +206,66 @@ async function loadmoreusers() {
   console.log("\n");
 }
 
+async function test_user_dao() {
+  const dao = new DynamoUserDAO();
+  const user = await dao.getUser("@r");
+  console.log(user);
+
+  // const user_2 = new User("abbie", "sinema", "@ab", "/image/url/abbie");
+  // const put = await dao.putUser(user_2);
+  // console.log(put);
+
+  // const put_2 = await dao.putUser(user_2);
+  // console.log(put_2);
+}
+
+async function test_auth_dao() {
+  const dao = new DynamoAuthenticationDAO();
+  const username = "r";
+  const password = "password";
+
+  const valid = await dao.authenticate(username, password);
+  console.log(valid);
+}
+
+async function test_token_dao() {
+  const dao = new DynamoAuthTokenDAO();
+  let token = AuthToken.Generate();
+  console.log(token);
+  token.timestamp = token.timestamp - 6000000;
+  console.log(token);
+
+  await dao.putAuthToken(token, "");
+
+  const token_2 = await dao.checkAuthToken(token);
+  console.log(token_2);
+}
+
+async function test_follow_status() {
+  const dao = new DynamoFollowDAO();
+  const follower = new User("ry", "sine", "@r", "image/url");
+  const followee = new User("ab", "sine", "@s", "image/url");
+  const status = await dao.getFollow(new Follow(follower, followee));
+  console.log(status);
+}
+
+async function test_get_follow_count() {
+  const dao = new DynamoFollowDAO();
+  const token = AuthToken.Generate();
+  const authDAO = new DynamoAuthTokenDAO();
+  const user = new User("a", "a", "@riley", "imag");
+  await new DynamoUserDAO().putUser(user);
+  await authDAO.putAuthToken(token, user.alias);
+  const user_2 = new User("a", "a", "@abbie", "imag");
+  await new DynamoUserDAO().putUser(user_2);
+
+  const service = new UserService(new DynamoDAOFactory());
+
+  const [ab_followers, ab_followees] = await service.follow(token, user_2);
+
+  console.log(ab_followers, ab_followees);
+}
+
 async function test() {
   // await login();
   // await register();
@@ -207,7 +277,12 @@ async function test() {
   // await poststatus();
   // await loadmoreitems();
   // await getfollowerscount();
-  await loadmoreusers();
+  // await loadmoreusers();
+  // await test_user_dao();
+  // await test_auth_dao();
+  // await test_token_dao();
+  // await test_follow_status();
+  await test_get_follow_count();
 }
 
 test();

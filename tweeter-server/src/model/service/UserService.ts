@@ -1,29 +1,67 @@
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, FakeData, Follow, User } from "tweeter-shared";
+import { DAOFactoryInterface } from "../../dao/DAOFactory";
 
 export class UserService {
+  private daoFactory: DAOFactoryInterface;
+
+  constructor(daoFactory: DAOFactoryInterface) {
+    this.daoFactory = daoFactory;
+  }
+
   public async getUser(
     authToken: AuthToken,
     alias: string
   ): Promise<User | null> {
-    return FakeData.instance.findUserByAlias(alias);
+    authToken = new AuthToken(authToken.token, authToken.timestamp);
+
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+
+    const validToken = await authTokenDAO.checkAuthToken(authToken);
+
+    if (validToken === undefined) {
+      throw new Error("This session token has expired. Please log back in");
+    }
+
+    const user = await userDAO.getUser(alias);
+
+    if (user === undefined) {
+      return null;
+    }
+
+    return user;
   }
 
   public async login(
     alias: string,
     password: string
   ): Promise<[User, AuthToken]> {
-    // TODO: Replace with the result of calling the server
-    let user = FakeData.instance.firstUser;
+    const authenticationDAO = this.daoFactory.getAuthenticationDAO();
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
-    if (user === null) {
+    const valid = await authenticationDAO.authenticate(alias, password);
+
+    if (valid === false) {
       throw new Error("Invalid alias or password");
     }
 
-    return [user, FakeData.instance.authToken];
+    alias = "@" + alias;
+    const user = await userDAO.getUser(alias);
+
+    if (user === undefined) {
+      throw new Error("Could not find user in database");
+    }
+
+    const token = AuthToken.Generate();
+    authTokenDAO.putAuthToken(token, user.alias);
+
+    return [user, token];
   }
 
   public async logout(authToken: AuthToken) {
-    await new Promise((res) => setTimeout(res, 1000));
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+    await authTokenDAO.deleteAuthToken(authToken);
   }
 
   public async register(
@@ -33,13 +71,30 @@ export class UserService {
     password: string,
     imageStringBase64: string
   ): Promise<[User, AuthToken]> {
-    let user = FakeData.instance.firstUser;
+    const authenticationDAO = this.daoFactory.getAuthenticationDAO();
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+    // TODO:: Make the S3 DAO
+    const username = alias;
+    alias = "@" + alias;
+    const user = new User(
+      firstName,
+      lastName,
+      alias,
+      "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png"
+    );
+    const valid = await userDAO.putUser(user);
 
-    if (user === null) {
+    if (valid === false) {
       throw new Error("Invalid registration");
     }
 
-    return [user, FakeData.instance.authToken];
+    await authenticationDAO.putAuthentication(username, password);
+
+    const token = AuthToken.Generate();
+    await authTokenDAO.putAuthToken(token, user.alias);
+
+    return [user, token];
   }
 
   public async getIsFollowerStatus(
@@ -47,50 +102,117 @@ export class UserService {
     user: User,
     selectedUser: User
   ): Promise<boolean> {
-    return FakeData.instance.isFollower();
+    const followDAO = this.daoFactory.getFollowDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+
+    const token = await authTokenDAO.checkAuthToken(authToken);
+
+    if (token === undefined) {
+      throw new Error(
+        "This session's token has expired. Please sign in and try again"
+      );
+    }
+
+    const follow = new Follow(user, selectedUser);
+    const isFollower = await followDAO.getFollow(follow);
+    return isFollower;
   }
 
   public async getFollowersCount(
     authToken: AuthToken,
     user: User
   ): Promise<number> {
-    return FakeData.instance.getFollowersCount(user);
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+
+    const token = await authTokenDAO.checkAuthToken(authToken);
+
+    if (token === undefined) {
+      throw new Error(
+        "This session's token has expired. Please sign in and try again"
+      );
+    }
+
+    const count = await userDAO.getFollowersCount(user.alias);
+
+    return count;
   }
 
   public async getFolloweesCount(
     authToken: AuthToken,
     user: User
   ): Promise<number> {
-    return FakeData.instance.getFolloweesCount(user);
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+
+    const token = await authTokenDAO.checkAuthToken(authToken);
+
+    if (token === undefined) {
+      throw new Error(
+        "This session's token has expired. Please sign in and try again"
+      );
+    }
+
+    const count = await userDAO.getFolloweesCount(user.alias);
+
+    return count;
   }
 
   public async follow(
     authToken: AuthToken,
     userToFollow: User
-  ): Promise<[followersCount: number, followeesCount: number]> {
-    await new Promise((res) => setTimeout(res, 1000));
+  ): Promise<[number, number]> {
+    const followDAO = this.daoFactory.getFollowDAO();
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
-    let followersCount = await this.getFollowersCount(authToken, userToFollow);
-    let followeesCount = await this.getFolloweesCount(authToken, userToFollow);
+    const [token, alias] = await authTokenDAO.checkAuthToken(authToken);
 
-    return [followersCount, followeesCount];
+    if (token === undefined) {
+      throw new Error(
+        "This session's token has expired. Please sign in and try again"
+      );
+    }
+
+    const userThatIsFollowing = await userDAO.getUser(alias);
+
+    await followDAO.putFollow(new Follow(userThatIsFollowing!, userToFollow));
+
+    await userDAO.updateFollowersCount(userToFollow.alias, 1);
+    await userDAO.updateFolloweesCount(userThatIsFollowing!.alias, 1);
+
+    const followers = await userDAO.getFollowersCount(userToFollow.alias);
+    const followees = await userDAO.getFolloweesCount(userToFollow.alias);
+
+    return [followers, followees];
   }
 
   public async unfollow(
     authToken: AuthToken,
     userToUnfollow: User
   ): Promise<[followersCount: number, followeesCount: number]> {
-    await new Promise((res) => setTimeout(res, 1000));
+    const followDAO = this.daoFactory.getFollowDAO();
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
-    let followersCount = await this.getFollowersCount(
-      authToken,
-      userToUnfollow
-    );
-    let followeesCount = await this.getFolloweesCount(
-      authToken,
-      userToUnfollow
-    );
+    const [token, alias] = await authTokenDAO.checkAuthToken(authToken);
 
-    return [followersCount, followeesCount];
+    if (token === undefined) {
+      throw new Error(
+        "This session's token has expired. Please sign in and try again"
+      );
+    }
+
+    const userThatIsFollowing = await userDAO.getUser(alias);
+
+    await followDAO.putFollow(new Follow(userThatIsFollowing!, userToUnfollow));
+
+    await userDAO.updateFollowersCount(userToUnfollow.alias, -1);
+    await userDAO.updateFolloweesCount(userThatIsFollowing!.alias, -1);
+
+    const followers = await userDAO.getFollowersCount(userToUnfollow.alias);
+    const followees = await userDAO.getFolloweesCount(userToUnfollow.alias);
+
+    return [followers, followees];
   }
 }

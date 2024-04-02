@@ -1,3 +1,4 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
 import { TweeterResponse, TweeterRequest } from "tweeter-shared";
 
@@ -9,7 +10,7 @@ export const handler = async (
   }
   let response = null;
   try {
-    await new UserService().logout(event.authtoken!);
+    await new UserService(new DynamoDAOFactory()).logout(event.authtoken!);
     response = new TweeterResponse(true, null);
   } catch (error) {
     throw new Error(`[Database Error] ${error as Error}.message`);
