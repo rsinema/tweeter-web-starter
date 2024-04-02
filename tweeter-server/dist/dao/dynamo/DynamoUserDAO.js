@@ -88,7 +88,7 @@ class DynamoUserDAO {
             return (_a = output.Item) === null || _a === void 0 ? void 0 : _a.followers;
         });
     }
-    updateFolloweesCount(alias) {
+    updateFolloweesCount(alias, value) {
         return __awaiter(this, void 0, void 0, function* () {
             const params = {
                 TableName: this.tableName,
@@ -97,13 +97,13 @@ class DynamoUserDAO {
                 },
                 UpdateExpression: "set " + this.followeesAttr + " = " + this.followeesAttr + " + :inc",
                 ExpressionAttributeValues: {
-                    ":inc": 1,
+                    ":inc": value,
                 },
             };
             yield this.client.send(new lib_dynamodb_1.UpdateCommand(params));
         });
     }
-    updateFollowersCount(alias) {
+    updateFollowersCount(alias, value) {
         return __awaiter(this, void 0, void 0, function* () {
             const params = {
                 TableName: this.tableName,
@@ -112,7 +112,7 @@ class DynamoUserDAO {
                 },
                 UpdateExpression: "set " + this.followersAttr + " = " + this.followersAttr + " + :inc",
                 ExpressionAttributeValues: {
-                    ":inc": 1,
+                    ":inc": value,
                 },
             };
             yield this.client.send(new lib_dynamodb_1.UpdateCommand(params));

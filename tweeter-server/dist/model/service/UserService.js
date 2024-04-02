@@ -64,7 +64,7 @@ class UserService {
             // TODO:: Make the S3 DAO
             const username = alias;
             alias = "@" + alias;
-            const user = new tweeter_shared_1.User(firstName, lastName, alias, "TODO:: Make the S3 DAO");
+            const user = new tweeter_shared_1.User(firstName, lastName, alias, "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
             const valid = yield userDAO.putUser(user);
             if (valid === false) {
                 throw new Error("Invalid registration");
@@ -123,8 +123,8 @@ class UserService {
             }
             const userThatIsFollowing = yield userDAO.getUser(alias);
             yield followDAO.putFollow(new tweeter_shared_1.Follow(userThatIsFollowing, userToFollow));
-            yield userDAO.updateFollowersCount(userToFollow.alias);
-            yield userDAO.updateFolloweesCount(userThatIsFollowing.alias);
+            yield userDAO.updateFollowersCount(userToFollow.alias, 1);
+            yield userDAO.updateFolloweesCount(userThatIsFollowing.alias, 1);
             const followers = yield userDAO.getFollowersCount(userToFollow.alias);
             const followees = yield userDAO.getFolloweesCount(userToFollow.alias);
             return [followers, followees];
@@ -132,10 +132,20 @@ class UserService {
     }
     unfollow(authToken, userToUnfollow) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield new Promise((res) => setTimeout(res, 1000));
-            let followersCount = yield this.getFollowersCount(authToken, userToUnfollow);
-            let followeesCount = yield this.getFolloweesCount(authToken, userToUnfollow);
-            return [followersCount, followeesCount];
+            const followDAO = this.daoFactory.getFollowDAO();
+            const userDAO = this.daoFactory.getUserDAO();
+            const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+            const [token, alias] = yield authTokenDAO.checkAuthToken(authToken);
+            if (token === undefined) {
+                throw new Error("This session's token has expired. Please sign in and try again");
+            }
+            const userThatIsFollowing = yield userDAO.getUser(alias);
+            yield followDAO.putFollow(new tweeter_shared_1.Follow(userThatIsFollowing, userToUnfollow));
+            yield userDAO.updateFollowersCount(userToUnfollow.alias, -1);
+            yield userDAO.updateFolloweesCount(userThatIsFollowing.alias, -1);
+            const followers = yield userDAO.getFollowersCount(userToUnfollow.alias);
+            const followees = yield userDAO.getFolloweesCount(userToUnfollow.alias);
+            return [followers, followees];
         });
     }
 }
