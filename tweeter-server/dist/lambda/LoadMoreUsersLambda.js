@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
+const DynamoDAOFactory_1 = require("../dao/dynamo/DynamoDAOFactory");
 const FollowService_1 = require("../model/service/FollowService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
@@ -20,13 +21,19 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
+    const token = tweeter_shared_1.AuthToken.fromJson(JSON.stringify(event.authtoken));
+    const displayedUser = tweeter_shared_1.User.fromJson(JSON.stringify(event.displayedUser));
+    let lastItem = null;
+    if (event.lastItem != null) {
+        lastItem = tweeter_shared_1.User.fromJson(JSON.stringify(event.lastItem));
+    }
     try {
         if (event.type === "followers") {
-            response = new tweeter_shared_1.LoadMoreUsersResponse(true, ...(yield new FollowService_1.FollowService().loadMoreFollowers(event.authtoken, event.displayedUser, event.pageSize, event.lastItem)), null);
+            response = new tweeter_shared_1.LoadMoreUsersResponse(true, ...(yield new FollowService_1.FollowService(new DynamoDAOFactory_1.DynamoDAOFactory()).loadMoreFollowers(token, displayedUser, event.pageSize, lastItem)), null);
             return response;
         }
         else {
-            response = new tweeter_shared_1.LoadMoreUsersResponse(true, ...(yield new FollowService_1.FollowService().loadMoreFollowees(event.authtoken, event.displayedUser, event.pageSize, event.lastItem)), null);
+            response = new tweeter_shared_1.LoadMoreUsersResponse(true, ...(yield new FollowService_1.FollowService(new DynamoDAOFactory_1.DynamoDAOFactory()).loadMoreFollowees(token, displayedUser, event.pageSize, lastItem)), null);
         }
     }
     catch (error) {

@@ -27,8 +27,16 @@ const DynamoAuthTokenDAO_1 = require("./dao/dynamo/DynamoAuthTokenDAO");
 const DynamoFollowDAO_1 = require("./dao/dynamo/DynamoFollowDAO");
 const UserService_1 = require("./model/service/UserService");
 const DynamoDAOFactory_1 = require("./dao/dynamo/DynamoDAOFactory");
+const DynamoStatusDAO_1 = require("./dao/dynamo/DynamoStatusDAO");
 function login() {
     return __awaiter(this, void 0, void 0, function* () {
+        // const user = new User(
+        //   "a",
+        //   "a",
+        //   "@r",
+        //   "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png"
+        // );
+        // await new DynamoUserDAO().putUser(user);
         let req = new tweeter_shared_1.LoginRequest("r", "password");
         console.log(JSON.stringify(req));
         let response = JSON.stringify(yield (0, LoginLambda_1.handler)(req));
@@ -40,7 +48,7 @@ function login() {
 }
 function register() {
     return __awaiter(this, void 0, void 0, function* () {
-        let req = new tweeter_shared_1.RegisterRequest("name", "a", "a", "a", "image");
+        let req = new tweeter_shared_1.RegisterRequest("riley", "a", "riley", "password", "image");
         console.log(JSON.stringify(req));
         let response = JSON.stringify(yield (0, RegisterLambda_1.handler)(req));
         console.log(response);
@@ -63,9 +71,29 @@ function logout() {
 }
 function follow() {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = new tweeter_shared_1.AuthToken("12345", 10);
-        const user = new tweeter_shared_1.User("first", "last", "a", "url");
-        let req = new tweeter_shared_1.FollowRequest("a", token, user);
+        const followee = new tweeter_shared_1.User("a", "s", "@abbie", "image/url");
+        const dao_2 = new DynamoUserDAO_1.DynamoUserDAO();
+        const put = yield dao_2.putUser(followee);
+        console.log("AUTHENTICATION");
+        let login = new tweeter_shared_1.LoginRequest("riley", "a");
+        console.log(JSON.stringify(login));
+        let login_response = JSON.stringify(yield (0, LoginLambda_1.handler)(login));
+        console.log(login_response);
+        let login_responseJson = JSON.parse(login_response);
+        const authResp = tweeter_shared_1.AuthenticateResponse.fromJson(login_responseJson);
+        console.log(authResp);
+        console.log("\n");
+        // let user_req = new TweeterRequest("@r", authResp.token);
+        // console.log(JSON.stringify(user_req));
+        // let user_resp = JSON.stringify(await getUserHandler(user_req));
+        // console.log(user_resp);
+        // let user_responseJson = JSON.parse(user_resp);
+        // const user_response = GetUserResponse.fromJson(user_responseJson);
+        // console.log(user_response);
+        // console.log("\n");
+        // const follower = user_response.user!;
+        console.log("FOLLOW");
+        let req = new tweeter_shared_1.FollowRequest("a", authResp.token, followee);
         console.log(JSON.stringify(req));
         let response = JSON.stringify(yield (0, FollowLambda_1.handler)(req));
         console.log(response);
@@ -196,7 +224,7 @@ function test_auth_dao() {
         const dao = new DynamoAuthenticationDAO_1.DynamoAuthenticationDAO();
         const username = "r";
         const password = "password";
-        const valid = yield dao.authenticate(username, password);
+        const valid = yield dao.getPassword(username);
         console.log(valid);
     });
 }
@@ -212,11 +240,14 @@ function test_token_dao() {
         console.log(token_2);
     });
 }
-function test_follow_status() {
+function test_follow() {
     return __awaiter(this, void 0, void 0, function* () {
         const dao = new DynamoFollowDAO_1.DynamoFollowDAO();
-        const follower = new tweeter_shared_1.User("ry", "sine", "@r", "image/url");
-        const followee = new tweeter_shared_1.User("ab", "sine", "@s", "image/url");
+        // const dao_2 = new DynamoUserDAO();
+        const follower = new tweeter_shared_1.User("r", "s", "@riley", "image/url");
+        const followee = new tweeter_shared_1.User("a", "s", "@abbie", "image/url");
+        // const put = await dao_2.putUser(followee);
+        yield dao.putFollow(new tweeter_shared_1.Follow(follower, followee));
         const status = yield dao.getFollow(new tweeter_shared_1.Follow(follower, followee));
         console.log(status);
     });
@@ -236,6 +267,140 @@ function test_get_follow_count() {
         console.log(ab_followers, ab_followees);
     });
 }
+function test_login_logout() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let req = new tweeter_shared_1.LoginRequest("r", "password");
+        console.log(JSON.stringify(req));
+        let response = JSON.stringify(yield (0, LoginLambda_1.handler)(req));
+        console.log(response);
+        let responseJson = JSON.parse(response);
+        console.log(tweeter_shared_1.AuthenticateResponse.fromJson(responseJson));
+        console.log("\n");
+        let req_2 = new tweeter_shared_1.TweeterRequest("@r", tweeter_shared_1.AuthenticateResponse.fromJson(responseJson).token
+        // new AuthToken("token", 10)
+        );
+        console.log(JSON.stringify(req_2));
+        let response_2 = JSON.stringify(yield (0, LogoutLambda_1.handler)(req_2));
+        console.log(response_2);
+        let responseJson_2 = JSON.parse(response_2);
+        console.log(tweeter_shared_1.TweeterResponse.fromJson(responseJson_2));
+        console.log("\n");
+    });
+}
+function put_user() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const nameList = [
+            "Allen",
+            "Bob",
+            "Riley",
+            "Mark",
+            "Brad",
+            "Tyler",
+            "Zach",
+            "Frank",
+            "Abbie",
+            "Kaylee",
+            "Lilly",
+        ];
+        const lastNameList = [
+            "Johnson",
+            "Smith",
+            "Williams",
+            "Sinema",
+            "Bell",
+            "Doe",
+            "Jensen",
+        ];
+        for (let i = 0; i < 20; i++) {
+            const user = new tweeter_shared_1.User(nameList[Math.floor(Math.random() * nameList.length)], lastNameList[Math.floor(Math.random() * lastNameList.length)], "@user_" + String(i), "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+            const dao = new DynamoUserDAO_1.DynamoUserDAO();
+            const put = yield dao.putUser(user);
+        }
+    });
+}
+function delete_follow() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let req = new tweeter_shared_1.LoginRequest("abley", "password");
+        console.log(JSON.stringify(req));
+        let response = JSON.stringify(yield (0, LoginLambda_1.handler)(req));
+        console.log(response);
+        let responseJson = JSON.parse(response);
+        const auth_resp = tweeter_shared_1.AuthenticateResponse.fromJson(responseJson);
+        console.log(auth_resp);
+        console.log("\n");
+        const followee = new tweeter_shared_1.User("Allen", "Anderson", "@allen", "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+        let uf_req = new tweeter_shared_1.FollowRequest(auth_resp.user.alias, auth_resp.token, followee);
+        console.log(JSON.stringify(uf_req));
+        let uf_response = JSON.stringify(yield (0, FollowLambda_1.handler)(uf_req));
+        console.log(uf_response);
+        let un_responseJson = JSON.parse(uf_response);
+        console.log(tweeter_shared_1.FollowResponse.fromJson(un_responseJson));
+        console.log("\n");
+    });
+}
+function test_load_more_followers() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const token = new tweeter_shared_1.AuthToken("token", 10);
+        const user = new tweeter_shared_1.User("Allen", "Anderson", "@allen", "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+        const req = new tweeter_shared_1.LoadMoreUsersRequest("", token, user, null, 5, "followers");
+        console.log(JSON.stringify(req));
+        let response = JSON.stringify(yield (0, LoadMoreUsersLambda_1.handler)(req));
+        // console.log(response);
+        let responseJson = JSON.parse(response);
+        // console.log(responseJson);
+        console.log(tweeter_shared_1.LoadMoreUsersResponse.fromJson(responseJson));
+        console.log("\n");
+    });
+}
+function test_post_with_feed_attatched() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let req = new tweeter_shared_1.LoginRequest("abley", "password");
+        console.log(JSON.stringify(req));
+        let response = JSON.stringify(yield (0, LoginLambda_1.handler)(req));
+        console.log(response);
+        let responseJson = JSON.parse(response);
+        const auth_resp = tweeter_shared_1.AuthenticateResponse.fromJson(responseJson);
+        console.log(auth_resp);
+        console.log("\n");
+        const post = new tweeter_shared_1.Status("trying feed capabilities", auth_resp.user, Date.now());
+        const req_2 = new tweeter_shared_1.PostStatusRequest("", auth_resp.token, post);
+        console.log(JSON.stringify(req_2));
+        const response_2 = JSON.stringify(yield (0, PostStatusLambda_1.handler)(req_2));
+        console.log(response_2);
+        const responseJson_2 = JSON.parse(response_2);
+        console.log(tweeter_shared_1.TweeterResponse.fromJson(responseJson_2));
+        console.log("\n");
+    });
+}
+function test_get_page_status() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const statusDAO = new DynamoStatusDAO_1.DynamoStatusDAO();
+        const userDAO = new DynamoUserDAO_1.DynamoUserDAO();
+        const user = new tweeter_shared_1.User("a", "a", "@abley", "image");
+        const [alias_timestamps, hasMorePages] = yield statusDAO.getPageOfStatus(user.alias, 5, undefined);
+        let statusList = [];
+        for (let i = 0; i < alias_timestamps.length; i++) {
+            let user = yield userDAO.getUser(alias_timestamps[i][0]);
+            if (!!user) {
+                let status = yield statusDAO.getStatus(alias_timestamps[i][0], alias_timestamps[i][1], user);
+                if (!!status) {
+                    statusList.push(status);
+                }
+            }
+        }
+        console.log(statusList);
+    });
+}
+function put_follows() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const followee = new tweeter_shared_1.User("riley", "sinema", "@riley", "image");
+        for (let i = 0; i < 20; i++) {
+            const follower = new tweeter_shared_1.User("a", "a", "@user_" + String(i), "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+            const dao = new DynamoFollowDAO_1.DynamoFollowDAO();
+            const put = yield dao.putFollow(new tweeter_shared_1.Follow(follower, followee));
+        }
+    });
+}
 function test() {
     return __awaiter(this, void 0, void 0, function* () {
         // await login();
@@ -253,10 +418,19 @@ function test() {
         // await test_auth_dao();
         // await test_token_dao();
         // await test_follow_status();
-        yield test_get_follow_count();
+        // await test_get_follow_count();
+        // await test_login_logout();
+        // await test_follow();
+        // await put_user();
+        yield put_follows();
+        // await delete_follow();
+        // await test_load_more_followers();
+        // await test_get_page_status();
+        // await test_post_with_feed_attatched();
     });
 }
 test();
 // dist % zip -r ../dist.zip *
 // cp -rL node_modules nodejs
 // zip -r nodejs.zip nodejs
+// get feed table items

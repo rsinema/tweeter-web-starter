@@ -10,18 +10,50 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FollowService = void 0;
-const tweeter_shared_1 = require("tweeter-shared");
 class FollowService {
+    constructor(daoFactory) {
+        this.daoFactory = daoFactory;
+    }
     loadMoreFollowers(authToken, user, pageSize, lastItem) {
         return __awaiter(this, void 0, void 0, function* () {
-            // TODO: Replace with the result of calling server
-            return tweeter_shared_1.FakeData.instance.getPageOfUsers(lastItem, pageSize, user);
+            const followDAO = this.daoFactory.getFollowDAO();
+            const userDAO = this.daoFactory.getUserDAO();
+            const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+            const validToken = yield authTokenDAO.checkAuthToken(authToken);
+            if (validToken === undefined) {
+                throw new Error("This session token has expired. Please log back in");
+            }
+            const item = lastItem ? lastItem.alias : undefined;
+            const [aliasList, hasMoreItems] = yield followDAO.getPageOfFollowers(user.alias, pageSize, item);
+            let userList = [];
+            for (let i = 0; i < aliasList.length; i++) {
+                let user = yield userDAO.getUser(aliasList[i]);
+                if (!!user) {
+                    userList.push(user);
+                }
+            }
+            return [userList, hasMoreItems];
         });
     }
     loadMoreFollowees(authToken, user, pageSize, lastItem) {
         return __awaiter(this, void 0, void 0, function* () {
-            // TODO: Replace with the result of calling server
-            return tweeter_shared_1.FakeData.instance.getPageOfUsers(lastItem, pageSize, user);
+            const followDAO = this.daoFactory.getFollowDAO();
+            const userDAO = this.daoFactory.getUserDAO();
+            const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+            const validToken = yield authTokenDAO.checkAuthToken(authToken);
+            if (validToken === undefined) {
+                throw new Error("This session token has expired. Please log back in");
+            }
+            const item = lastItem ? lastItem.alias : undefined;
+            const [aliasList, hasMoreItems] = yield followDAO.getPageOfFollowees(user.alias, pageSize, item);
+            let userList = [];
+            for (let i = 0; i < aliasList.length; i++) {
+                let user = yield userDAO.getUser(aliasList[i]);
+                if (!!user) {
+                    userList.push(user);
+                }
+            }
+            return [userList, hasMoreItems];
         });
     }
 }

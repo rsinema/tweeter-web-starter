@@ -1,9 +1,10 @@
-import { AuthToken, Follow, User } from "tweeter-shared";
+import { AuthToken, Follow, Status, User } from "tweeter-shared";
 
 export interface FollowDAO {
   putFollow(follow: Follow): Promise<void>;
   getFollow(follow: Follow): Promise<boolean>;
   deleteFollow(follow: Follow): Promise<void>;
+  getFollowers(alias: string): Promise<string[]>;
   getPageOfFollowers(
     followeeHandle: string,
     pageSize: number,
@@ -26,9 +27,36 @@ export interface UserDAO {
   updateFolloweesCount(alias: string, value: number): Promise<void>;
 }
 
+export interface StatusDAO {
+  putStatus(status: Status): Promise<void>;
+  getStatus(
+    alias: string,
+    timestamp: number,
+    user: User
+  ): Promise<Status | undefined>;
+  getPageOfStatus(
+    alias: string,
+    pageSize: number,
+    lastItem: Status | undefined
+  ): Promise<[[string, number][], boolean]>;
+}
+
+export interface FeedDAO {
+  putFeedItem(feedOwnerAlias: string, item: Status): Promise<void>;
+  getPageOfFeed(
+    alias: string,
+    pageSize: number,
+    lastItem: Status | undefined
+  ): Promise<[[string, number][], boolean]>;
+}
+
 export interface AuthenticationDAO {
-  authenticate(username: string, password: string): Promise<boolean>;
-  putAuthentication(username: string, password: string): Promise<void>;
+  getPassword(username: string): Promise<string | undefined>;
+  putAuthentication(
+    username: string,
+    password: string,
+    salt: string
+  ): Promise<void>;
 }
 
 export interface AuthTokenDAO {
@@ -37,4 +65,8 @@ export interface AuthTokenDAO {
   ): Promise<[AuthToken, string] | [undefined, undefined]>;
   putAuthToken(token: AuthToken, alias: string): Promise<void>;
   deleteAuthToken(token: AuthToken): Promise<void>;
+}
+
+export interface FileDAO {
+  putFile(encodedImage: string, userAlias: string): Promise<string>;
 }

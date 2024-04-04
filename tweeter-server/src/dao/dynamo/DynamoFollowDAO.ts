@@ -14,20 +14,13 @@ export class DynamoFollowDAO implements FollowDAO {
   readonly indexName = "follows_index";
   readonly followersHandleAttr = "follower_handle";
   readonly followeesHandleAttr = "followee_handle";
-  readonly followersNameAttr = "follower_name";
-  readonly followeesNameAttr = "followee_name";
 
   private readonly client = DynamoDBDocumentClient.from(new DynamoDBClient());
 
   public async putFollow(follow: Follow): Promise<void> {
     const params = {
       TableName: this.tableName,
-      Item: {
-        [this.followeesHandleAttr]: follow.followee.alias,
-        [this.followeesNameAttr]: follow.followee.name,
-        [this.followersHandleAttr]: follow.follower.alias,
-        [this.followersNameAttr]: follow.follower.name,
-      },
+      Item: this.generateFollowItem(follow),
     };
     await this.client.send(new PutCommand(params));
   }
@@ -43,6 +36,22 @@ export class DynamoFollowDAO implements FollowDAO {
     };
     const output = await this.client.send(new GetCommand(params));
     return output.Item == undefined ? false : true;
+  }
+
+  async getFollowers(alias: string): Promise<string[]> {
+    const params = {
+      KeyConditionExpression: this.followeesHandleAttr + " = :followee",
+      ExpressionAttributeValues: {
+        ":followee": alias,
+      },
+      TableName: this.tableName,
+      IndexName: this.indexName,
+    };
+
+    const items: string[] = [];
+    const data = await this.client.send(new QueryCommand(params));
+    data.Items?.forEach((item) => items.push(item[this.followersHandleAttr]));
+    return items;
   }
 
   async deleteFollow(follow: Follow): Promise<void> {

@@ -20,16 +20,18 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
+    const token = tweeter_shared_1.AuthToken.fromJson(JSON.stringify(event.authtoken));
+    const user = tweeter_shared_1.User.fromJson(JSON.stringify(event.user));
     try {
         if (event.type === "followers") {
-            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).getFollowersCount(event.authtoken, event.user), null);
+            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).getFollowersCount(token, user), null);
         }
         else {
-            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).getFolloweesCount(event.authtoken, event.user), null);
+            response = new tweeter_shared_1.GetFollowCountResponse(true, yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).getFolloweesCount(token, user), null);
         }
     }
     catch (error) {
-        throw new Error(`[Database Error] ${error}.message`);
+        throw new Error(`[Database Error] ${error.message}`);
     }
     return response;
 });

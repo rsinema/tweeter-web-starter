@@ -14,16 +14,17 @@ const DynamoDAOFactory_1 = require("../dao/dynamo/DynamoDAOFactory");
 const UserService_1 = require("../model/service/UserService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    if (event.authtoken === null) {
+    if (event.authtoken === undefined) {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
+    const token = tweeter_shared_1.AuthToken.fromJson(JSON.stringify(event.authtoken));
     try {
-        yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).logout(event.authtoken);
+        yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).logout(token);
         response = new tweeter_shared_1.TweeterResponse(true, null);
     }
     catch (error) {
-        throw new Error(`[Database Error] ${error}.message`);
+        throw new Error(`[Database Error] ${error.message}`);
     }
     return response;
 });

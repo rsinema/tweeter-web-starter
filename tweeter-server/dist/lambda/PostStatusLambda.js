@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
+const DynamoDAOFactory_1 = require("../dao/dynamo/DynamoDAOFactory");
 const StatusService_1 = require("../model/service/StatusService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
@@ -19,12 +20,14 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
+    const token = tweeter_shared_1.AuthToken.fromJson(JSON.stringify(event.authtoken));
+    const status = tweeter_shared_1.Status.fromJson(JSON.stringify(event.status));
     try {
-        yield new StatusService_1.StatusService().postStatus(event.authtoken, event.status);
+        yield new StatusService_1.StatusService(new DynamoDAOFactory_1.DynamoDAOFactory()).postStatus(token, status);
         response = new tweeter_shared_1.TweeterResponse(true, null);
     }
     catch (error) {
-        throw new Error(`[Database Error] ${error}.message`);
+        throw new Error(`[Database Error] ${error.message}`);
     }
     return response;
 });

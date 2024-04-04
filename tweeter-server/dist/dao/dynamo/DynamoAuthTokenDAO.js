@@ -57,6 +57,7 @@ class DynamoAuthTokenDAO {
     }
     deleteAuthToken(token) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log(token);
             const params = {
                 TableName: this.tableName,
                 Key: {

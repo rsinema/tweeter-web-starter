@@ -1,6 +1,11 @@
 import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
-import { FollowStatusResponse, FollowStatusRequest } from "tweeter-shared";
+import {
+  FollowStatusResponse,
+  FollowStatusRequest,
+  AuthToken,
+  User,
+} from "tweeter-shared";
 
 export const handler = async (
   event: FollowStatusRequest
@@ -15,14 +20,17 @@ export const handler = async (
   }
 
   let response = null;
+  const token = AuthToken.fromJson(JSON.stringify(event.authtoken));
+  const user = User.fromJson(JSON.stringify(event.user));
+  const selectedUser = User.fromJson(JSON.stringify(event.selectedUser));
 
   try {
     response = new FollowStatusResponse(
       true,
       await new UserService(new DynamoDAOFactory()).getIsFollowerStatus(
-        event.authtoken,
-        event.user,
-        event.selectedUser
+        token!,
+        user!,
+        selectedUser!
       ),
       null
     );

@@ -1,6 +1,6 @@
 import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
-import { FollowResponse, FollowRequest } from "tweeter-shared";
+import { FollowResponse, FollowRequest, User, AuthToken } from "tweeter-shared";
 
 export const handler = async (
   event: FollowRequest
@@ -14,12 +14,16 @@ export const handler = async (
   }
 
   let response = null;
+  const user = User.fromJson(JSON.stringify(event.userToFollow));
+  const token = AuthToken.fromJson(JSON.stringify(event.authtoken));
+  console.log(user);
+  console.log(token);
   try {
     response = new FollowResponse(
       true,
       ...(await new UserService(new DynamoDAOFactory()).unfollow(
-        event.authtoken,
-        event.userToFollow
+        token!,
+        user!
       )),
       null
     );

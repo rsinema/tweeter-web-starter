@@ -6,10 +6,10 @@ export class RegisterRequest extends LoginRequest {
   public userImageBase64String: string;
 
   constructor(
-    username: string,
-    password: string,
     firstName: string,
     lastName: string,
+    username: string,
+    password: string,
     image: string
   ) {
     super(username, password);

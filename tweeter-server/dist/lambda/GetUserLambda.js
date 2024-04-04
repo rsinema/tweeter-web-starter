@@ -20,11 +20,12 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
+    const token = tweeter_shared_1.AuthToken.fromJson(JSON.stringify(event.authtoken));
     try {
-        response = new tweeter_shared_1.GetUserResponse(true, yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).getUser(event.authtoken, event.alias), null);
+        response = new tweeter_shared_1.GetUserResponse(true, yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).getUser(token, event.alias), null);
     }
     catch (error) {
-        throw new Error(`[Database Error] ${error}.message`);
+        throw new Error(`[Database Error] ${error.message}`);
     }
     return response;
 });

@@ -19,7 +19,7 @@ class DynamoAuthenticationDAO {
         this.passwordAttr = "password";
         this.client = lib_dynamodb_1.DynamoDBDocumentClient.from(new client_dynamodb_1.DynamoDBClient());
     }
-    authenticate(username, password) {
+    getPassword(username) {
         return __awaiter(this, void 0, void 0, function* () {
             const params = {
                 TableName: this.tableName,
@@ -29,18 +29,12 @@ class DynamoAuthenticationDAO {
             };
             const output = yield this.client.send(new lib_dynamodb_1.GetCommand(params));
             if (output === undefined) {
-                return false;
+                return undefined;
             }
-            console.log(output.Item.password);
-            if (password === output.Item.password) {
-                return true;
-            }
-            else {
-                return false;
-            }
+            return output.Item.password;
         });
     }
-    putAuthentication(username, password) {
+    putAuthentication(username, password, salt) {
         return __awaiter(this, void 0, void 0, function* () {
             const params = {
                 TableName: this.tableName,

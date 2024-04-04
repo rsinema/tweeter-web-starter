@@ -22,6 +22,7 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
+    console.log(event);
     try {
         response = new tweeter_shared_1.AuthenticateResponse(true, ...(yield new UserService_1.UserService(new DynamoDAOFactory_1.DynamoDAOFactory()).register(event.firstName, event.lastName, event.alias, event.password, event.userImageBase64String)), null);
     }

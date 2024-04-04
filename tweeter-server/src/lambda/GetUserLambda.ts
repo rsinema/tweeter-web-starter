@@ -1,6 +1,11 @@
 import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { UserService } from "../model/service/UserService";
-import { GetUserResponse, TweeterRequest, User } from "tweeter-shared";
+import {
+  AuthToken,
+  GetUserResponse,
+  TweeterRequest,
+  User,
+} from "tweeter-shared";
 
 export const handler = async (
   event: TweeterRequest
@@ -14,17 +19,18 @@ export const handler = async (
   }
 
   let response = null;
+  const token = AuthToken.fromJson(JSON.stringify(event.authtoken));
   try {
     response = new GetUserResponse(
       true,
       await new UserService(new DynamoDAOFactory()).getUser(
-        event.authtoken,
+        token!,
         event.alias
       ),
       null
     );
   } catch (error) {
-    throw new Error(`[Database Error] ${error as Error}.message`);
+    throw new Error(`[Database Error] ${(error as Error).message}`);
   }
 
   return response;

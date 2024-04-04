@@ -17,6 +17,8 @@ export const handler = async (
 
   let response = null;
 
+  console.log(event);
+
   try {
     response = new AuthenticateResponse(
       true,

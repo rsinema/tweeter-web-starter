@@ -69,6 +69,7 @@ export class UserService {
   }
 
   public async logout(authToken: AuthToken) {
+    console.log(authToken);
     const server = new ServerFacade();
     await server.logout(new TweeterRequest("", authToken));
   }

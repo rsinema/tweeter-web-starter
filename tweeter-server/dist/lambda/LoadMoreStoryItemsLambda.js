@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
+const DynamoDAOFactory_1 = require("../dao/dynamo/DynamoDAOFactory");
 const StatusService_1 = require("../model/service/StatusService");
 const tweeter_shared_1 = require("tweeter-shared");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
@@ -20,11 +21,17 @@ const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("[Bad Request] Bad request");
     }
     let response = null;
+    const token = tweeter_shared_1.AuthToken.fromJson(JSON.stringify(event.authtoken));
+    const displayedUser = tweeter_shared_1.User.fromJson(JSON.stringify(event.displayedUser));
+    let lastItem = undefined;
+    if (event.lastItem != null) {
+        lastItem = tweeter_shared_1.Status.fromJson(JSON.stringify(event.lastItem));
+    }
     try {
-        response = new tweeter_shared_1.LoadMoreItemsResponse(true, ...(yield new StatusService_1.StatusService().loadMoreStoryItems(event.authtoken, event.displayedUser, event.pageSize, event.lastItem)), null);
+        response = new tweeter_shared_1.LoadMoreItemsResponse(true, ...(yield new StatusService_1.StatusService(new DynamoDAOFactory_1.DynamoDAOFactory()).loadMoreStoryItems(token, displayedUser, event.pageSize, lastItem)), null);
     }
     catch (error) {
-        throw new Error(`[Database Error] ${error}.message`);
+        throw new Error(`[Database Error] ${error.message}`);
     }
     return response;
 });

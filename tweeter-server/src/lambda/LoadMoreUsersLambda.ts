@@ -1,5 +1,11 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { FollowService } from "../model/service/FollowService";
-import { LoadMoreUsersRequest, LoadMoreUsersResponse } from "tweeter-shared";
+import {
+  AuthToken,
+  LoadMoreUsersRequest,
+  LoadMoreUsersResponse,
+  User,
+} from "tweeter-shared";
 
 export const handler = async (
   event: LoadMoreUsersRequest
@@ -14,15 +20,21 @@ export const handler = async (
   }
 
   let response = null;
+  const token = AuthToken.fromJson(JSON.stringify(event.authtoken));
+  const displayedUser = User.fromJson(JSON.stringify(event.displayedUser));
+  let lastItem = null;
+  if (event.lastItem != null) {
+    lastItem = User.fromJson(JSON.stringify(event.lastItem));
+  }
   try {
     if (event.type === "followers") {
       response = new LoadMoreUsersResponse(
         true,
-        ...(await new FollowService().loadMoreFollowers(
-          event.authtoken,
-          event.displayedUser,
+        ...(await new FollowService(new DynamoDAOFactory()).loadMoreFollowers(
+          token!,
+          displayedUser!,
           event.pageSize,
-          event.lastItem
+          lastItem!
         )),
         null
       );
@@ -30,11 +42,11 @@ export const handler = async (
     } else {
       response = new LoadMoreUsersResponse(
         true,
-        ...(await new FollowService().loadMoreFollowees(
-          event.authtoken,
-          event.displayedUser,
+        ...(await new FollowService(new DynamoDAOFactory()).loadMoreFollowees(
+          token!,
+          displayedUser!,
           event.pageSize,
-          event.lastItem
+          lastItem!
         )),
         null
       );

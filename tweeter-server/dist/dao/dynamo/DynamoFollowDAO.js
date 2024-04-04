@@ -18,20 +18,13 @@ class DynamoFollowDAO {
         this.indexName = "follows_index";
         this.followersHandleAttr = "follower_handle";
         this.followeesHandleAttr = "followee_handle";
-        this.followersNameAttr = "follower_name";
-        this.followeesNameAttr = "followee_name";
         this.client = lib_dynamodb_1.DynamoDBDocumentClient.from(new client_dynamodb_1.DynamoDBClient());
     }
     putFollow(follow) {
         return __awaiter(this, void 0, void 0, function* () {
             const params = {
                 TableName: this.tableName,
-                Item: {
-                    [this.followeesHandleAttr]: follow.followee.alias,
-                    [this.followeesNameAttr]: follow.followee.name,
-                    [this.followersHandleAttr]: follow.follower.alias,
-                    [this.followersNameAttr]: follow.follower.name,
-                },
+                Item: this.generateFollowItem(follow),
             };
             yield this.client.send(new lib_dynamodb_1.PutCommand(params));
         });
@@ -49,6 +42,23 @@ class DynamoFollowDAO {
             };
             const output = yield this.client.send(new lib_dynamodb_1.GetCommand(params));
             return output.Item == undefined ? false : true;
+        });
+    }
+    getFollowers(alias) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const params = {
+                KeyConditionExpression: this.followeesHandleAttr + " = :followee",
+                ExpressionAttributeValues: {
+                    ":followee": alias,
+                },
+                TableName: this.tableName,
+                IndexName: this.indexName,
+            };
+            const items = [];
+            const data = yield this.client.send(new lib_dynamodb_1.QueryCommand(params));
+            (_a = data.Items) === null || _a === void 0 ? void 0 : _a.forEach((item) => items.push(item[this.followersHandleAttr]));
+            return items;
         });
     }
     deleteFollow(follow) {

@@ -19,13 +19,15 @@ export const handler = async (
   }
 
   let response = null;
+  const token = AuthToken.fromJson(JSON.stringify(event.authtoken));
+  const user = User.fromJson(JSON.stringify(event.user));
   try {
     if (event.type === "followers") {
       response = new GetFollowCountResponse(
         true,
         await new UserService(new DynamoDAOFactory()).getFollowersCount(
-          event.authtoken,
-          event.user
+          token!,
+          user!
         ),
         null
       );
@@ -33,14 +35,14 @@ export const handler = async (
       response = new GetFollowCountResponse(
         true,
         await new UserService(new DynamoDAOFactory()).getFolloweesCount(
-          event.authtoken,
-          event.user
+          token!,
+          user!
         ),
         null
       );
     }
   } catch (error) {
-    throw new Error(`[Database Error] ${error as Error}.message`);
+    throw new Error(`[Database Error] ${(error as Error).message}`);
   }
 
   return response;

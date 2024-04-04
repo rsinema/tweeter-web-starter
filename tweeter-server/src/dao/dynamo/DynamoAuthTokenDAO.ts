@@ -57,6 +57,8 @@ export class DynamoAuthTokenDAO implements AuthTokenDAO {
   }
 
   async deleteAuthToken(token: AuthToken): Promise<void> {
+    console.log(token);
+
     const params = {
       TableName: this.tableName,
       Key: {

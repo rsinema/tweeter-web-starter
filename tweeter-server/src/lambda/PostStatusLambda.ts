@@ -1,5 +1,11 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { StatusService } from "../model/service/StatusService";
-import { PostStatusRequest, TweeterResponse, User } from "tweeter-shared";
+import {
+  AuthToken,
+  PostStatusRequest,
+  Status,
+  TweeterResponse,
+} from "tweeter-shared";
 
 export const handler = async (
   event: PostStatusRequest
@@ -14,11 +20,14 @@ export const handler = async (
 
   let response = null;
 
+  const token = AuthToken.fromJson(JSON.stringify(event.authtoken));
+  const status = Status.fromJson(JSON.stringify(event.status));
+
   try {
-    await new StatusService().postStatus(event.authtoken, event.status);
+    await new StatusService(new DynamoDAOFactory()).postStatus(token!, status!);
     response = new TweeterResponse(true, null);
   } catch (error) {
-    throw new Error(`[Database Error] ${error as Error}.message`);
+    throw new Error(`[Database Error] ${(error as Error).message}`);
   }
   return response;
 };

@@ -1,5 +1,6 @@
-import { AuthToken, FakeData, Follow, User } from "tweeter-shared";
+import { AuthToken, Follow, User } from "tweeter-shared";
 import { DAOFactoryInterface } from "../../dao/DAOFactory";
+import { genSalt, hash, compare } from "bcryptjs";
 
 export class UserService {
   private daoFactory: DAOFactoryInterface;
@@ -12,8 +13,6 @@ export class UserService {
     authToken: AuthToken,
     alias: string
   ): Promise<User | null> {
-    authToken = new AuthToken(authToken.token, authToken.timestamp);
-
     const userDAO = this.daoFactory.getUserDAO();
     const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
@@ -40,27 +39,40 @@ export class UserService {
     const userDAO = this.daoFactory.getUserDAO();
     const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
-    const valid = await authenticationDAO.authenticate(alias, password);
+    const hashed_password = await authenticationDAO.getPassword(alias);
 
-    if (valid === false) {
-      throw new Error("Invalid alias or password");
+    if (hashed_password === undefined) {
+      throw new Error("[Database Error] Unable to retrieve data from database");
+    }
+
+    const valid = await this.authenticate(password, hashed_password);
+
+    if (!valid) {
+      throw new Error("[Bad Request] Invalid username or password");
     }
 
     alias = "@" + alias;
     const user = await userDAO.getUser(alias);
 
     if (user === undefined) {
-      throw new Error("Could not find user in database");
+      throw new Error("[Database Error] Could not find user in database");
     }
 
     const token = AuthToken.Generate();
-    authTokenDAO.putAuthToken(token, user.alias);
+    await authTokenDAO.putAuthToken(token, user.alias);
 
     return [user, token];
   }
 
   public async logout(authToken: AuthToken) {
     const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+
+    const [token, alias] = await authTokenDAO.checkAuthToken(authToken);
+
+    if (token === undefined) {
+      throw new Error("This session token has expired. Please log back in");
+    }
+
     await authTokenDAO.deleteAuthToken(authToken);
   }
 
@@ -74,22 +86,24 @@ export class UserService {
     const authenticationDAO = this.daoFactory.getAuthenticationDAO();
     const userDAO = this.daoFactory.getUserDAO();
     const authTokenDAO = this.daoFactory.getAuthTokenDAO();
-    // TODO:: Make the S3 DAO
+    const s3DAO = this.daoFactory.getFileDAO();
+
     const username = alias;
     alias = "@" + alias;
-    const user = new User(
-      firstName,
-      lastName,
-      alias,
-      "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png"
-    );
+
+    const userImageURL = await s3DAO.putFile(imageStringBase64, alias);
+
+    const user = new User(firstName, lastName, alias, userImageURL);
     const valid = await userDAO.putUser(user);
 
     if (valid === false) {
-      throw new Error("Invalid registration");
+      throw new Error("[Bad Request] Invalid registration");
     }
 
-    await authenticationDAO.putAuthentication(username, password);
+    const salt = await genSalt(10);
+    const hashed_password = await hash(password, salt);
+
+    await authenticationDAO.putAuthentication(username, hashed_password, salt);
 
     const token = AuthToken.Generate();
     await authTokenDAO.putAuthToken(token, user.alias);
@@ -176,6 +190,10 @@ export class UserService {
 
     const userThatIsFollowing = await userDAO.getUser(alias);
 
+    if (userThatIsFollowing === undefined) {
+      throw new Error("User not found in the database");
+    }
+
     await followDAO.putFollow(new Follow(userThatIsFollowing!, userToFollow));
 
     await userDAO.updateFollowersCount(userToFollow.alias, 1);
@@ -190,7 +208,7 @@ export class UserService {
   public async unfollow(
     authToken: AuthToken,
     userToUnfollow: User
-  ): Promise<[followersCount: number, followeesCount: number]> {
+  ): Promise<[number, number]> {
     const followDAO = this.daoFactory.getFollowDAO();
     const userDAO = this.daoFactory.getUserDAO();
     const authTokenDAO = this.daoFactory.getAuthTokenDAO();
@@ -205,7 +223,9 @@ export class UserService {
 
     const userThatIsFollowing = await userDAO.getUser(alias);
 
-    await followDAO.putFollow(new Follow(userThatIsFollowing!, userToUnfollow));
+    await followDAO.deleteFollow(
+      new Follow(userThatIsFollowing!, userToUnfollow)
+    );
 
     await userDAO.updateFollowersCount(userToUnfollow.alias, -1);
     await userDAO.updateFolloweesCount(userThatIsFollowing!.alias, -1);
@@ -214,5 +234,9 @@ export class UserService {
     const followees = await userDAO.getFolloweesCount(userToUnfollow.alias);
 
     return [followers, followees];
+  }
+
+  private async authenticate(password: string, hashed_password: string) {
+    return await compare(password, hashed_password);
   }
 }

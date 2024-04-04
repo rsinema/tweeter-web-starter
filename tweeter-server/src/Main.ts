@@ -38,8 +38,16 @@ import { DynamoAuthTokenDAO } from "./dao/dynamo/DynamoAuthTokenDAO";
 import { DynamoFollowDAO } from "./dao/dynamo/DynamoFollowDAO";
 import { UserService } from "./model/service/UserService";
 import { DynamoDAOFactory } from "./dao/dynamo/DynamoDAOFactory";
+import { DynamoStatusDAO } from "./dao/dynamo/DynamoStatusDAO";
 
 async function login() {
+  // const user = new User(
+  //   "a",
+  //   "a",
+  //   "@r",
+  //   "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png"
+  // );
+  // await new DynamoUserDAO().putUser(user);
   let req = new LoginRequest("r", "password");
   console.log(JSON.stringify(req));
   let response = JSON.stringify(await loginHandler(req));
@@ -50,7 +58,7 @@ async function login() {
 }
 
 async function register() {
-  let req = new RegisterRequest("name", "a", "a", "a", "image");
+  let req = new RegisterRequest("riley", "a", "riley", "password", "image");
   console.log(JSON.stringify(req));
   let response = JSON.stringify(await registerHandler(req));
   console.log(response);
@@ -71,9 +79,33 @@ async function logout() {
 }
 
 async function follow() {
-  const token = new AuthToken("12345", 10);
-  const user = new User("first", "last", "a", "url");
-  let req = new FollowRequest("a", token, user);
+  const followee = new User("a", "s", "@abbie", "image/url");
+  const dao_2 = new DynamoUserDAO();
+  const put = await dao_2.putUser(followee);
+
+  console.log("AUTHENTICATION");
+  let login = new LoginRequest("riley", "a");
+  console.log(JSON.stringify(login));
+  let login_response = JSON.stringify(await loginHandler(login));
+  console.log(login_response);
+  let login_responseJson = JSON.parse(login_response);
+  const authResp = AuthenticateResponse.fromJson(login_responseJson);
+  console.log(authResp);
+  console.log("\n");
+
+  // let user_req = new TweeterRequest("@r", authResp.token);
+  // console.log(JSON.stringify(user_req));
+  // let user_resp = JSON.stringify(await getUserHandler(user_req));
+  // console.log(user_resp);
+  // let user_responseJson = JSON.parse(user_resp);
+  // const user_response = GetUserResponse.fromJson(user_responseJson);
+  // console.log(user_response);
+  // console.log("\n");
+
+  // const follower = user_response.user!;
+
+  console.log("FOLLOW");
+  let req = new FollowRequest("a", authResp.token, followee);
   console.log(JSON.stringify(req));
   let response = JSON.stringify(await followHandler(req));
   console.log(response);
@@ -224,7 +256,7 @@ async function test_auth_dao() {
   const username = "r";
   const password = "password";
 
-  const valid = await dao.authenticate(username, password);
+  const valid = await dao.getPassword(username);
   console.log(valid);
 }
 
@@ -241,10 +273,14 @@ async function test_token_dao() {
   console.log(token_2);
 }
 
-async function test_follow_status() {
+async function test_follow() {
   const dao = new DynamoFollowDAO();
-  const follower = new User("ry", "sine", "@r", "image/url");
-  const followee = new User("ab", "sine", "@s", "image/url");
+  // const dao_2 = new DynamoUserDAO();
+  const follower = new User("r", "s", "@riley", "image/url");
+  const followee = new User("a", "s", "@abbie", "image/url");
+  // const put = await dao_2.putUser(followee);
+
+  await dao.putFollow(new Follow(follower, followee));
   const status = await dao.getFollow(new Follow(follower, followee));
   console.log(status);
 }
@@ -266,6 +302,185 @@ async function test_get_follow_count() {
   console.log(ab_followers, ab_followees);
 }
 
+async function test_login_logout() {
+  let req = new LoginRequest("r", "password");
+  console.log(JSON.stringify(req));
+  let response = JSON.stringify(await loginHandler(req));
+  console.log(response);
+  let responseJson = JSON.parse(response);
+  console.log(AuthenticateResponse.fromJson(responseJson));
+  console.log("\n");
+
+  let req_2 = new TweeterRequest(
+    "@r",
+    AuthenticateResponse.fromJson(responseJson).token
+    // new AuthToken("token", 10)
+  );
+  console.log(JSON.stringify(req_2));
+  let response_2 = JSON.stringify(await logoutHandler(req_2));
+  console.log(response_2);
+  let responseJson_2 = JSON.parse(response_2);
+  console.log(TweeterResponse.fromJson(responseJson_2));
+  console.log("\n");
+}
+
+async function put_user() {
+  const nameList = [
+    "Allen",
+    "Bob",
+    "Riley",
+    "Mark",
+    "Brad",
+    "Tyler",
+    "Zach",
+    "Frank",
+    "Abbie",
+    "Kaylee",
+    "Lilly",
+  ];
+  const lastNameList = [
+    "Johnson",
+    "Smith",
+    "Williams",
+    "Sinema",
+    "Bell",
+    "Doe",
+    "Jensen",
+  ];
+
+  for (let i = 0; i < 20; i++) {
+    const user = new User(
+      nameList[Math.floor(Math.random() * nameList.length)],
+      lastNameList[Math.floor(Math.random() * lastNameList.length)],
+      "@user_" + String(i),
+      "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png"
+    );
+
+    const dao = new DynamoUserDAO();
+    const put = await dao.putUser(user);
+  }
+}
+
+async function delete_follow() {
+  let req = new LoginRequest("abley", "password");
+  console.log(JSON.stringify(req));
+  let response = JSON.stringify(await loginHandler(req));
+  console.log(response);
+  let responseJson = JSON.parse(response);
+  const auth_resp = AuthenticateResponse.fromJson(responseJson);
+  console.log(auth_resp);
+  console.log("\n");
+
+  const followee = new User(
+    "Allen",
+    "Anderson",
+    "@allen",
+    "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png"
+  );
+
+  let uf_req = new FollowRequest(
+    auth_resp.user.alias,
+    auth_resp.token,
+    followee
+  );
+  console.log(JSON.stringify(uf_req));
+  let uf_response = JSON.stringify(await followHandler(uf_req));
+  console.log(uf_response);
+  let un_responseJson = JSON.parse(uf_response);
+  console.log(FollowResponse.fromJson(un_responseJson));
+  console.log("\n");
+}
+
+async function test_load_more_followers() {
+  const token = new AuthToken("token", 10);
+  const user = new User(
+    "Allen",
+    "Anderson",
+    "@allen",
+    "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png"
+  );
+  const req = new LoadMoreUsersRequest("", token, user, null, 5, "followers");
+  console.log(JSON.stringify(req));
+  let response = JSON.stringify(await loadMoreUsersHandler(req));
+  // console.log(response);
+  let responseJson = JSON.parse(response);
+  // console.log(responseJson);
+  console.log(LoadMoreUsersResponse.fromJson(responseJson));
+  console.log("\n");
+}
+
+async function test_post_with_feed_attatched() {
+  let req = new LoginRequest("abley", "password");
+  console.log(JSON.stringify(req));
+  let response = JSON.stringify(await loginHandler(req));
+  console.log(response);
+  let responseJson = JSON.parse(response);
+  const auth_resp = AuthenticateResponse.fromJson(responseJson);
+  console.log(auth_resp);
+  console.log("\n");
+
+  const post = new Status(
+    "trying feed capabilities",
+    auth_resp.user,
+    Date.now()
+  );
+
+  const req_2 = new PostStatusRequest("", auth_resp.token, post);
+  console.log(JSON.stringify(req_2));
+  const response_2 = JSON.stringify(await postStatusHandler(req_2));
+  console.log(response_2);
+  const responseJson_2 = JSON.parse(response_2);
+  console.log(TweeterResponse.fromJson(responseJson_2));
+  console.log("\n");
+}
+
+async function test_get_page_status() {
+  const statusDAO = new DynamoStatusDAO();
+  const userDAO = new DynamoUserDAO();
+
+  const user = new User("a", "a", "@abley", "image");
+
+  const [alias_timestamps, hasMorePages] = await statusDAO.getPageOfStatus(
+    user.alias,
+    5,
+    undefined
+  );
+
+  let statusList: Status[] = [];
+
+  for (let i = 0; i < alias_timestamps.length; i++) {
+    let user = await userDAO.getUser(alias_timestamps[i][0]);
+
+    if (!!user) {
+      let status = await statusDAO.getStatus(
+        alias_timestamps[i][0],
+        alias_timestamps[i][1],
+        user
+      );
+      if (!!status) {
+        statusList.push(status);
+      }
+    }
+  }
+
+  console.log(statusList);
+}
+
+async function put_follows() {
+  const followee = new User("riley", "sinema", "@riley", "image");
+  for (let i = 0; i < 20; i++) {
+    const follower = new User(
+      "a",
+      "a",
+      "@user_" + String(i),
+      "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png"
+    );
+
+    const dao = new DynamoFollowDAO();
+    const put = await dao.putFollow(new Follow(follower, followee));
+  }
+}
+
 async function test() {
   // await login();
   // await register();
@@ -282,7 +497,15 @@ async function test() {
   // await test_auth_dao();
   // await test_token_dao();
   // await test_follow_status();
-  await test_get_follow_count();
+  // await test_get_follow_count();
+  // await test_login_logout();
+  // await test_follow();
+  // await put_user();
+  await put_follows();
+  // await delete_follow();
+  // await test_load_more_followers();
+  // await test_get_page_status();
+  // await test_post_with_feed_attatched();
 }
 
 test();
@@ -292,3 +515,5 @@ test();
 // cp -rL node_modules nodejs
 
 // zip -r nodejs.zip nodejs
+
+// get feed table items

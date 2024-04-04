@@ -12,9 +12,11 @@ import MainLayout from "./components/mainLayout/MainLayout";
 import Toaster from "./components/toaster/Toaster";
 import useUserInfo from "./components/userInfo/UserInfoHook";
 import { FollowingPresenter } from "./presenter/FollowingPresenter";
+import { FollowersPresenter } from "./presenter/FollowersPresenter";
 import { UserItemView } from "./presenter/UserItemPresenter";
 import { StatusItemView } from "./presenter/StatusItemPresenter";
 import { FeedPresenter } from "./presenter/FeedPresenter";
+import { StoryPresenter } from "./presenter/StoryPresenter";
 import { LoginPresenter } from "./presenter/LoginPresenter";
 import { RegisterPresenter, RegisterView } from "./presenter/RegisterPresenter";
 import { AuthenticationView } from "./presenter/AuthenticationPresenter";
@@ -69,7 +71,7 @@ const AuthenticatedRoutes = () => {
             <ItemScroller
               key={"story"}
               presenterGenerator={(view: StatusItemView) =>
-                new FeedPresenter(view)
+                new StoryPresenter(view)
               }
               itemComponentGenerator={function (item: Status): JSX.Element {
                 return <StatusItem value={item} />;
@@ -97,7 +99,7 @@ const AuthenticatedRoutes = () => {
             <ItemScroller
               key={"followers"}
               presenterGenerator={(view: UserItemView) =>
-                new FollowingPresenter(view)
+                new FollowersPresenter(view)
               }
               itemComponentGenerator={function (item: User): JSX.Element {
                 return <UserItem value={item} />;

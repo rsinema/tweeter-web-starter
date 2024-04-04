@@ -1,12 +1,9 @@
 import {
-  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
-  QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { User } from "tweeter-shared";
 import { AuthenticationDAO } from "../DAOInterface";
 
 export class DynamoAuthenticationDAO implements AuthenticationDAO {
@@ -16,7 +13,7 @@ export class DynamoAuthenticationDAO implements AuthenticationDAO {
 
   private readonly client = DynamoDBDocumentClient.from(new DynamoDBClient());
 
-  async authenticate(username: string, password: string): Promise<boolean> {
+  async getPassword(username: string): Promise<string | undefined> {
     const params = {
       TableName: this.tableName,
       Key: {
@@ -26,18 +23,13 @@ export class DynamoAuthenticationDAO implements AuthenticationDAO {
     const output = await this.client.send(new GetCommand(params));
 
     if (output === undefined) {
-      return false;
+      return undefined;
     }
 
-    console.log(output.Item!.password);
-    if (password === output.Item!.password) {
-      return true;
-    } else {
-      return false;
-    }
+    return output.Item!.password;
   }
 
-  async putAuthentication(username: string, password: string) {
+  async putAuthentication(username: string, password: string, salt: string) {
     const params = {
       TableName: this.tableName,
       Item: {

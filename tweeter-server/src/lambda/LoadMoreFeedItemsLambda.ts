@@ -1,5 +1,12 @@
+import { DynamoDAOFactory } from "../dao/dynamo/DynamoDAOFactory";
 import { StatusService } from "../model/service/StatusService";
-import { LoadMoreItemsRequest, LoadMoreItemsResponse } from "tweeter-shared";
+import {
+  AuthToken,
+  LoadMoreItemsRequest,
+  LoadMoreItemsResponse,
+  Status,
+  User,
+} from "tweeter-shared";
 
 export const handler = async (
   event: LoadMoreItemsRequest
@@ -14,14 +21,20 @@ export const handler = async (
   }
 
   let response = null;
+  const token = AuthToken.fromJson(JSON.stringify(event.authtoken));
+  const displayedUser = User.fromJson(JSON.stringify(event.displayedUser));
+  let lastItem = undefined;
+  if (event.lastItem != null) {
+    lastItem = Status.fromJson(JSON.stringify(event.lastItem));
+  }
   try {
     response = new LoadMoreItemsResponse(
       true,
-      ...(await new StatusService().loadMoreFeedItems(
-        event.authtoken,
-        event.displayedUser,
+      ...(await new StatusService(new DynamoDAOFactory()).loadMoreFeedItems(
+        token!,
+        displayedUser!,
         event.pageSize,
-        event.lastItem
+        lastItem!
       )),
       null
     );

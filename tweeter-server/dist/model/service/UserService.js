@@ -11,13 +11,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const tweeter_shared_1 = require("tweeter-shared");
+const bcryptjs_1 = require("bcryptjs");
 class UserService {
     constructor(daoFactory) {
         this.daoFactory = daoFactory;
     }
     getUser(authToken, alias) {
         return __awaiter(this, void 0, void 0, function* () {
-            authToken = new tweeter_shared_1.AuthToken(authToken.token, authToken.timestamp);
             const userDAO = this.daoFactory.getUserDAO();
             const authTokenDAO = this.daoFactory.getAuthTokenDAO();
             const validToken = yield authTokenDAO.checkAuthToken(authToken);
@@ -36,23 +36,31 @@ class UserService {
             const authenticationDAO = this.daoFactory.getAuthenticationDAO();
             const userDAO = this.daoFactory.getUserDAO();
             const authTokenDAO = this.daoFactory.getAuthTokenDAO();
-            const valid = yield authenticationDAO.authenticate(alias, password);
-            if (valid === false) {
-                throw new Error("Invalid alias or password");
+            const hashed_password = yield authenticationDAO.getPassword(alias);
+            if (hashed_password === undefined) {
+                throw new Error("[Database Error] Unable to retrieve data from database");
+            }
+            const valid = yield this.authenticate(password, hashed_password);
+            if (!valid) {
+                throw new Error("[Bad Request] Invalid username or password");
             }
             alias = "@" + alias;
             const user = yield userDAO.getUser(alias);
             if (user === undefined) {
-                throw new Error("Could not find user in database");
+                throw new Error("[Database Error] Could not find user in database");
             }
             const token = tweeter_shared_1.AuthToken.Generate();
-            authTokenDAO.putAuthToken(token, user.alias);
+            yield authTokenDAO.putAuthToken(token, user.alias);
             return [user, token];
         });
     }
     logout(authToken) {
         return __awaiter(this, void 0, void 0, function* () {
             const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+            const [token, alias] = yield authTokenDAO.checkAuthToken(authToken);
+            if (token === undefined) {
+                throw new Error("This session token has expired. Please log back in");
+            }
             yield authTokenDAO.deleteAuthToken(authToken);
         });
     }
@@ -61,15 +69,18 @@ class UserService {
             const authenticationDAO = this.daoFactory.getAuthenticationDAO();
             const userDAO = this.daoFactory.getUserDAO();
             const authTokenDAO = this.daoFactory.getAuthTokenDAO();
-            // TODO:: Make the S3 DAO
+            const s3DAO = this.daoFactory.getFileDAO();
             const username = alias;
             alias = "@" + alias;
-            const user = new tweeter_shared_1.User(firstName, lastName, alias, "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png");
+            const userImageURL = yield s3DAO.putFile(imageStringBase64, alias);
+            const user = new tweeter_shared_1.User(firstName, lastName, alias, userImageURL);
             const valid = yield userDAO.putUser(user);
             if (valid === false) {
-                throw new Error("Invalid registration");
+                throw new Error("[Bad Request] Invalid registration");
             }
-            yield authenticationDAO.putAuthentication(username, password);
+            const salt = yield (0, bcryptjs_1.genSalt)(10);
+            const hashed_password = yield (0, bcryptjs_1.hash)(password, salt);
+            yield authenticationDAO.putAuthentication(username, hashed_password, salt);
             const token = tweeter_shared_1.AuthToken.Generate();
             yield authTokenDAO.putAuthToken(token, user.alias);
             return [user, token];
@@ -122,6 +133,9 @@ class UserService {
                 throw new Error("This session's token has expired. Please sign in and try again");
             }
             const userThatIsFollowing = yield userDAO.getUser(alias);
+            if (userThatIsFollowing === undefined) {
+                throw new Error("User not found in the database");
+            }
             yield followDAO.putFollow(new tweeter_shared_1.Follow(userThatIsFollowing, userToFollow));
             yield userDAO.updateFollowersCount(userToFollow.alias, 1);
             yield userDAO.updateFolloweesCount(userThatIsFollowing.alias, 1);
@@ -140,12 +154,17 @@ class UserService {
                 throw new Error("This session's token has expired. Please sign in and try again");
             }
             const userThatIsFollowing = yield userDAO.getUser(alias);
-            yield followDAO.putFollow(new tweeter_shared_1.Follow(userThatIsFollowing, userToUnfollow));
+            yield followDAO.deleteFollow(new tweeter_shared_1.Follow(userThatIsFollowing, userToUnfollow));
             yield userDAO.updateFollowersCount(userToUnfollow.alias, -1);
             yield userDAO.updateFolloweesCount(userThatIsFollowing.alias, -1);
             const followers = yield userDAO.getFollowersCount(userToUnfollow.alias);
             const followees = yield userDAO.getFolloweesCount(userToUnfollow.alias);
             return [followers, followees];
+        });
+    }
+    authenticate(password, hashed_password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield (0, bcryptjs_1.compare)(password, hashed_password);
         });
     }
 }
