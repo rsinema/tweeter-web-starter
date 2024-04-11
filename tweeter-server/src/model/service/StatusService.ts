@@ -99,7 +99,6 @@ export class StatusService {
   ): Promise<void> {
     const statusDAO = this.daoFactory.getStatusDAO();
     const followDAO = this.daoFactory.getFollowDAO();
-    const userDAO = this.daoFactory.getUserDAO();
     const feedDAO = this.daoFactory.getFeedDAO();
     const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 

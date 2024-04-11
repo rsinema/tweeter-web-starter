@@ -65,7 +65,6 @@ class StatusService {
         return __awaiter(this, void 0, void 0, function* () {
             const statusDAO = this.daoFactory.getStatusDAO();
             const followDAO = this.daoFactory.getFollowDAO();
-            const userDAO = this.daoFactory.getUserDAO();
             const feedDAO = this.daoFactory.getFeedDAO();
             const authTokenDAO = this.daoFactory.getAuthTokenDAO();
             const validToken = yield authTokenDAO.checkAuthToken(authToken);
