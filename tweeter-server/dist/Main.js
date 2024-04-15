@@ -21,6 +21,7 @@ const LoadMoreStoryItemsLambda_1 = require("./lambda/LoadMoreStoryItemsLambda");
 const PostStatusLambda_1 = require("./lambda/PostStatusLambda");
 const GetFollowCountLambda_1 = require("./lambda/GetFollowCountLambda");
 const LoadMoreUsersLambda_1 = require("./lambda/LoadMoreUsersLambda");
+const PostUpdateFeedMessagesLambda_1 = require("./lambda/PostUpdateFeedMessagesLambda");
 const DynamoUserDAO_1 = require("./dao/dynamo/DynamoUserDAO");
 const DynamoAuthenticationDAO_1 = require("./dao/dynamo/DynamoAuthenticationDAO");
 const DynamoAuthTokenDAO_1 = require("./dao/dynamo/DynamoAuthTokenDAO");
@@ -28,6 +29,8 @@ const DynamoFollowDAO_1 = require("./dao/dynamo/DynamoFollowDAO");
 const UserService_1 = require("./model/service/UserService");
 const DynamoDAOFactory_1 = require("./dao/dynamo/DynamoDAOFactory");
 const DynamoStatusDAO_1 = require("./dao/dynamo/DynamoStatusDAO");
+const DynamoFeedDAO_1 = require("./dao/dynamo/DynamoFeedDAO");
+const StatusService_1 = require("./model/service/StatusService");
 function login() {
     return __awaiter(this, void 0, void 0, function* () {
         // const user = new User(
@@ -401,6 +404,32 @@ function put_follows() {
         }
     });
 }
+function put_batch_feed() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const dao = new DynamoFeedDAO_1.DynamoFeedDAO();
+        const service = new StatusService_1.StatusService(new DynamoDAOFactory_1.DynamoDAOFactory());
+        const user = new tweeter_shared_1.User("a", "a", "@riley", "image");
+        const status = new tweeter_shared_1.Status("test_post", user, 10);
+        const aliasList = [];
+        const alias_string = "@user_";
+        for (let i = 1; i < 26; i++) {
+            aliasList.push(alias_string + i);
+        }
+        // await dao.putBatchOfFeedItems(aliasList, status);
+        // await service.postToFeed(aliasList, status);
+        const event = {
+            Records: [
+                {
+                    body: JSON.stringify({ ["aliasList"]: aliasList, ["status"]: status }),
+                },
+            ],
+        };
+        const jsonObj = JSON.parse(JSON.stringify({ ["aliasList"]: aliasList, ["status"]: status }));
+        console.log(jsonObj.aliasList.length);
+        (0, PostUpdateFeedMessagesLambda_1.handler)(event);
+        // updateFeedHandler(event);
+    });
+}
 function test() {
     return __awaiter(this, void 0, void 0, function* () {
         // await login();
@@ -422,15 +451,28 @@ function test() {
         // await test_login_logout();
         // await test_follow();
         // await put_user();
-        yield put_follows();
+        // await put_follows();
         // await delete_follow();
         // await test_load_more_followers();
         // await test_get_page_status();
         // await test_post_with_feed_attatched();
+        yield put_batch_feed();
+        // const L = 147;
+        // for (let i = 0; i < L; i = i + 25) {
+        //   console.log(i);
+        //   let k = i + 25;
+        //   if (k > L) {
+        //     k = L;
+        //   }
+        //   let s = "";
+        //   for (let j = i; j < k; j++) {
+        //     s = s + " " + j;
+        //   }
+        //   console.log(s);
+        // }
     });
 }
 test();
 // dist % zip -r ../dist.zip *
 // cp -rL node_modules nodejs
 // zip -r nodejs.zip nodejs
-// get feed table items

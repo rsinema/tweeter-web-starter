@@ -10,31 +10,35 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
+const StatusService_1 = require("../model/service/StatusService");
 const DynamoDAOFactory_1 = require("../dao/dynamo/DynamoDAOFactory");
-const FollowService_1 = require("../model/service/FollowService");
 const tweeter_shared_1 = require("tweeter-shared");
-const client_sqs_1 = require("@aws-sdk/client-sqs");
 const handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     for (let i = 0; i < event.Records.length; ++i) {
         const { body } = event.Records[i];
-        const service = new FollowService_1.FollowService(new DynamoDAOFactory_1.DynamoDAOFactory());
-        // extract the alias and the status from the body
+        const service = new StatusService_1.StatusService(new DynamoDAOFactory_1.DynamoDAOFactory());
         const parsed_body = JSON.parse(body);
-        const status = tweeter_shared_1.Status.fromJson(JSON.stringify(parsed_body));
-        const user = status === null || status === void 0 ? void 0 : status.user;
-        let aliasList = [];
-        // get a page of follower aliases
-        aliasList = yield service.getFollowers(user);
-        const sqs_url = "https://sqs.us-west-2.amazonaws.com/710560088359/UpdateFeedQueue";
-        const sqsClient = new client_sqs_1.SQSClient();
-        const params = {
-            MessageBody: createItem(aliasList, status),
-            QueueUrl: sqs_url,
-        };
-        yield sqsClient.send(new client_sqs_1.SendMessageCommand(params));
+        const status = tweeter_shared_1.Status.fromJson(JSON.stringify(parsed_body.status));
+        const aliasList = parsed_body.aliasList;
+        if (aliasList.length > 0) {
+            // let s = "";
+            for (let i = 0; i < aliasList.length; i = i + 25) {
+                let k = i + 25;
+                if (k > aliasList.length) {
+                    k = aliasList.length;
+                }
+                let aliasBatch = [];
+                for (let j = i; j < k; j++) {
+                    aliasBatch.push(aliasList[j]);
+                }
+                // s = s + " " + i;
+                yield service.postToFeed(aliasBatch, status);
+            }
+            // console.log(s);
+        }
+        else {
+            console.log("No followers to post feed to");
+        }
     }
 });
 exports.handler = handler;
-function createItem(aliasList, status) {
-    return JSON.stringify({ ["aliasList"]: aliasList, ["status"]: status });
-}

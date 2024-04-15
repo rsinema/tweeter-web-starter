@@ -64,17 +64,27 @@ class StatusService {
     postStatus(authToken, newStatus) {
         return __awaiter(this, void 0, void 0, function* () {
             const statusDAO = this.daoFactory.getStatusDAO();
-            const followDAO = this.daoFactory.getFollowDAO();
-            const feedDAO = this.daoFactory.getFeedDAO();
             const authTokenDAO = this.daoFactory.getAuthTokenDAO();
             const validToken = yield authTokenDAO.checkAuthToken(authToken);
             if (validToken[0] === undefined) {
                 throw new Error("This session token has expired. Please log back in");
             }
-            const followeeAliasList = yield followDAO.getFollowers(newStatus.user.alias);
             yield statusDAO.putStatus(newStatus);
-            for (let i = 0; i < followeeAliasList.length; i++) {
-                yield feedDAO.putFeedItem(followeeAliasList[i], newStatus);
+        });
+    }
+    postToFeed(aliasList, status) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const feedDAO = this.daoFactory.getFeedDAO();
+            for (let i = 0; i < aliasList.length; i = i + 25) {
+                let aliasBatch = [];
+                let k = i + 25;
+                if (i + 25 > aliasList.length) {
+                    k = aliasList.length;
+                }
+                for (let j = i; j < k; j++) {
+                    aliasBatch.push(aliasList[j]);
+                }
+                yield feedDAO.putBatchOfFeedItems(aliasList, status);
             }
         });
     }

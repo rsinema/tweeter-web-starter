@@ -15,7 +15,6 @@ const client_dynamodb_1 = require("@aws-sdk/client-dynamodb");
 class DynamoFeedDAO {
     constructor() {
         this.tableName = "feed";
-        this.indexName = "followee_index";
         this.aliasAttr = "alias";
         this.followeeAliasAttribute = "followee_alias";
         this.postAttr = "post";
@@ -57,6 +56,62 @@ class DynamoFeedDAO {
             return [items, hasMorePages];
         });
     }
+    putBatchOfFeedItems(aliasList, status) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (aliasList.length == 0) {
+                return;
+            }
+            else {
+                const params = {
+                    RequestItems: {
+                        [this.tableName]: this.generateBatchOfFeedItemRequests(aliasList, status),
+                    },
+                };
+                yield this.client
+                    .send(new lib_dynamodb_1.BatchWriteCommand(params))
+                    .then((resp) => __awaiter(this, void 0, void 0, function* () {
+                    yield this.putUnprocessedItems(resp, params);
+                }))
+                    .catch((err) => {
+                    throw new Error("Error while batchwriting users with params: " +
+                        params +
+                        ": \n" +
+                        err);
+                });
+            }
+        });
+    }
+    putUnprocessedItems(resp, params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (resp.UnprocessedItems != undefined) {
+                let sec = 0.01;
+                while (Object.keys(resp.UnprocessedItems).length > 0) {
+                    //The ts-ignore with an @ in front must be as a comment in order to ignore an error for the next line for compiling.
+                    // @ts-ignore
+                    params.RequestItems = resp.UnprocessedItems;
+                    execSync("sleep " + sec);
+                    if (sec < 1)
+                        sec += 0.1;
+                    yield this.client.send(new lib_dynamodb_1.BatchWriteCommand(params));
+                    if (resp.UnprocessedItems == undefined) {
+                        break;
+                    }
+                }
+            }
+        });
+    }
+    generateBatchOfFeedItemRequests(aliasList, status) {
+        return aliasList.map((alias) => this.generateFeedItemRequest(alias, status));
+    }
+    generateFeedItemRequest(alias, status) {
+        let item = this.generateFeedItem(alias, status);
+        let request = {
+            PutRequest: {
+                Item: item,
+            },
+        };
+        return request;
+    }
     generateFeedItem(feedOwnerAlias, status) {
         return {
             [this.aliasAttr]: feedOwnerAlias,
@@ -68,3 +123,6 @@ class DynamoFeedDAO {
     }
 }
 exports.DynamoFeedDAO = DynamoFeedDAO;
+function execSync(arg0) {
+    throw new Error("Function not implemented.");
+}

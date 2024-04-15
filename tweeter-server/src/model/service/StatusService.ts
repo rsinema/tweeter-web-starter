@@ -1,4 +1,4 @@
-import { AuthToken, User, Status, FakeData } from "tweeter-shared";
+import { AuthToken, User, Status } from "tweeter-shared";
 import { DAOFactoryInterface } from "../../dao/DAOFactory";
 
 export class StatusService {
@@ -98,8 +98,6 @@ export class StatusService {
     newStatus: Status
   ): Promise<void> {
     const statusDAO = this.daoFactory.getStatusDAO();
-    const followDAO = this.daoFactory.getFollowDAO();
-    const feedDAO = this.daoFactory.getFeedDAO();
     const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
     const validToken = await authTokenDAO.checkAuthToken(authToken);
@@ -108,14 +106,26 @@ export class StatusService {
       throw new Error("This session token has expired. Please log back in");
     }
 
-    const followeeAliasList = await followDAO.getFollowers(
-      newStatus.user.alias
-    );
-
     await statusDAO.putStatus(newStatus);
+  }
 
-    for (let i = 0; i < followeeAliasList.length; i++) {
-      await feedDAO.putFeedItem(followeeAliasList[i], newStatus);
+  public async postToFeed(aliasList: string[], status: Status) {
+    const feedDAO = this.daoFactory.getFeedDAO();
+
+    for (let i = 0; i < aliasList.length; i = i + 25) {
+      let aliasBatch: string[] = [];
+
+      let k = i + 25;
+
+      if (i + 25 > aliasList.length) {
+        k = aliasList.length;
+      }
+
+      for (let j = i; j < k; j++) {
+        aliasBatch.push(aliasList[j]);
+      }
+
+      await feedDAO.putBatchOfFeedItems(aliasList, status);
     }
   }
 }

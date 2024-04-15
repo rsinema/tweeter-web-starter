@@ -31,6 +31,16 @@ class UserService {
             return user;
         });
     }
+    getUserFromAlias(alias) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userDAO = this.daoFactory.getUserDAO();
+            const user = yield userDAO.getUser(alias);
+            if (user === undefined) {
+                return null;
+            }
+            return user;
+        });
+    }
     login(alias, password) {
         return __awaiter(this, void 0, void 0, function* () {
             const authenticationDAO = this.daoFactory.getAuthenticationDAO();

@@ -56,5 +56,21 @@ class FollowService {
             return [userList, hasMoreItems];
         });
     }
+    loadMoreFollowersAlias(user, pageSize, lastItem) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const followDAO = this.daoFactory.getFollowDAO();
+            const userDAO = this.daoFactory.getUserDAO();
+            const item = lastItem ? lastItem.alias : undefined;
+            const [aliasList, hasMoreItems] = yield followDAO.getPageOfFollowers(user.alias, pageSize, item);
+            return [aliasList, hasMoreItems];
+        });
+    }
+    getFollowers(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const followDAO = this.daoFactory.getFollowDAO();
+            const aliasList = yield followDAO.getFollowers(user.alias);
+            return aliasList;
+        });
+    }
 }
 exports.FollowService = FollowService;

@@ -48,6 +48,7 @@ export interface FeedDAO {
     pageSize: number,
     lastItem: Status | undefined
   ): Promise<[[string, number][], boolean]>;
+  putBatchOfFeedItems(aliasList: string[], item: Status): Promise<void>;
 }
 
 export interface AuthenticationDAO {

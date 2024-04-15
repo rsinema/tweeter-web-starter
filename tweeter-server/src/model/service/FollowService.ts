@@ -79,4 +79,31 @@ export class FollowService {
 
     return [userList, hasMoreItems];
   }
+
+  public async loadMoreFollowersAlias(
+    user: User,
+    pageSize: number,
+    lastItem: User | null
+  ): Promise<[string[], boolean]> {
+    const followDAO = this.daoFactory.getFollowDAO();
+    const userDAO = this.daoFactory.getUserDAO();
+
+    const item = lastItem ? lastItem.alias : undefined;
+
+    const [aliasList, hasMoreItems] = await followDAO.getPageOfFollowers(
+      user.alias,
+      pageSize,
+      item
+    );
+
+    return [aliasList, hasMoreItems];
+  }
+
+  public async getFollowers(user: User): Promise<string[]> {
+    const followDAO = this.daoFactory.getFollowDAO();
+
+    const aliasList = await followDAO.getFollowers(user.alias);
+
+    return aliasList;
+  }
 }

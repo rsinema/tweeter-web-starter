@@ -53,6 +53,5 @@ export class StatusService {
     const response: TweeterResponse = await server.postStatus(
       new PostStatusRequest("", authToken, newStatus)
     );
-    console.log(response.success);
   }
 }

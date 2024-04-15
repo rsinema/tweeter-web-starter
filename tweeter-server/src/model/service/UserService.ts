@@ -31,6 +31,17 @@ export class UserService {
     return user;
   }
 
+  public async getUserFromAlias(alias: string): Promise<User | null> {
+    const userDAO = this.daoFactory.getUserDAO();
+    const user = await userDAO.getUser(alias);
+
+    if (user === undefined) {
+      return null;
+    }
+
+    return user;
+  }
+
   public async login(
     alias: string,
     password: string
