@@ -27,6 +27,7 @@ import { StatusService } from "../../src/model/service/StatusService";
 describe("The application", () => {
   const test_username = "test";
   const test_password = "test";
+  const test_post_text = "post";
   const server = new ServerFacade();
   let user: User;
   let authtoken: AuthToken;
@@ -57,7 +58,7 @@ describe("The application", () => {
     user = authResp.user;
     authtoken = authResp.token;
 
-    await postStatusPresenter.submitPost("post", user, authtoken);
+    await postStatusPresenter.submitPost(test_post_text, user, authtoken);
 
     const resp = await server.loadMoreStoryItems(
       new LoadMoreItemsRequest(user.alias, authtoken, user, null, 10)
@@ -76,7 +77,7 @@ describe("The application", () => {
     verify(mockPostStatusView.displayInfoMessage("Status posted!", 2000)).once;
 
     expect(resp.success).toBeTruthy();
-    expect(resp.itemsList[0].post).toBe("post");
+    expect(resp.itemsList[0].post).toBe(test_post_text);
     expect(resp.message).toBeNull();
   });
 });
